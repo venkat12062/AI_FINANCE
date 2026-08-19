@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "public": true,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://aifinance-production-d8db.up.railway.app/api/$1"
+    }
+  ]
+}

@@ -63,19 +63,12 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSpinner.classList.remove('hidden');
 
         try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
+            const apiRes = await Api.post('/auth/login', payload);
+            const data = apiRes.data;
 
-            const data = await response.json();
-
-            if (response.ok && data.success) {
+            if ((apiRes.ok || apiRes.status === 200) && data && data.success) {
                 // Success
-                alertBox.textContent = data.message;
+                alertBox.textContent = data.message || 'Login successful!';
                 alertBox.className = 'alert alert-success';
                 
                 // Store token and user in localStorage
@@ -92,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Redirect to dashboard
                     setTimeout(() => {
                         window.location.href = '/pages/dashboard/dashboard.html';
-                    }, 500);
+                    }, 400);
                 } else {
                     alertBox.textContent = 'Invalid response from server.';
                     alertBox.className = 'alert alert-error';

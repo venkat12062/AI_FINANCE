@@ -3,96 +3,819 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Finance Manager - Smart Budgeting & Expense Tracking</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>FinanceAI — Next-Gen AI Financial Intelligence & Expense Management</title>
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#4caf50">
-    <!-- Include FontAwesome for icons (using a CDN for demo purposes, can be removed if not needed) -->
+    <meta name="theme-color" content="#6366f1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="js/pwa.js" defer></script>
+    <style>
+/* ═══════════════════════════════════════════════════════════════════
+   MODERN FINTECH SAAS LANDING PAGE STYLES
+═══════════════════════════════════════════════════════════════════ */
+:root {
+    --lp-bg: #090d16;
+    --lp-surface: rgba(18, 26, 44, 0.7);
+    --lp-surface-elevated: rgba(30, 41, 67, 0.75);
+    --lp-border: rgba(255, 255, 255, 0.1);
+    --lp-border-glow: rgba(99, 102, 241, 0.35);
+    --lp-primary: #6366f1;
+    --lp-primary-glow: rgba(99, 102, 241, 0.4);
+    --lp-cyan: #0ea5e9;
+    --lp-emerald: #10b981;
+    --lp-amber: #f59e0b;
+    --lp-rose: #f43f5e;
+}
+
+body {
+    background-color: var(--lp-bg);
+    color: #f8fafc;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+/* Glowing Background Mesh */
+.bg-mesh {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+        radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 85% 25%, rgba(14, 165, 233, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Glass Navbar */
+.lp-navbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(9, 13, 22, 0.82);
+    border-bottom: 1px solid var(--lp-border);
+    transition: all 0.3s ease;
+}
+
+.lp-nav-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.lp-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #fff;
+    text-decoration: none;
+    letter-spacing: -0.02em;
+}
+
+.lp-logo-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--lp-primary), var(--lp-cyan));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.15rem;
+    box-shadow: 0 0 20px var(--lp-primary-glow);
+}
+
+.lp-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    list-style: none;
+    margin: 0; padding: 0;
+}
+
+.lp-nav-link {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.lp-nav-link:hover { color: #fff; }
+
+.lp-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Buttons */
+.lp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    border: none;
+}
+
+.lp-btn-primary {
+    background: linear-gradient(135deg, #6366f1, #0ea5e9);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+}
+
+.lp-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(99, 102, 241, 0.6);
+    color: #fff;
+}
+
+.lp-btn-secondary {
+    background: rgba(255, 255, 255, 0.06);
+    color: #f1f5f9;
+    border: 1px solid var(--lp-border);
+}
+
+.lp-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+/* Hero Section */
+.lp-hero {
+    position: relative;
+    padding: 9rem 1.5rem 5rem;
+    max-width: 1240px;
+    margin: 0 auto;
+    text-align: center;
+    z-index: 1;
+}
+
+.lp-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 1.1rem;
+    border-radius: 9999px;
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    color: #a5b4fc;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    animation: fadeInDown 0.8s ease;
+}
+
+.lp-pulse-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 10px #10b981;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.6; }
+}
+
+.lp-hero-title {
+    font-size: clamp(2.5rem, 6vw, 4.4rem);
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+    margin: 0 auto 1.5rem;
+    max-width: 960px;
+}
+
+.lp-gradient-text {
+    background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 70%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.lp-hero-subtitle {
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    color: #94a3b8;
+    max-width: 740px;
+    margin: 0 auto 2.5rem;
+    font-weight: 400;
+}
+
+.lp-hero-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 3.5rem;
+}
+
+/* Interactive Demo / Terminal Window */
+.lp-terminal-wrapper {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto 5rem;
+    border-radius: 20px;
+    padding: 10px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(14, 165, 233, 0.15) 50%, rgba(255, 255, 255, 0.05));
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(99, 102, 241, 0.2);
+}
+
+.lp-terminal-window {
+    background: #0f172a;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lp-terminal-header {
+    background: #1e293b;
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lp-window-dots {
+    display: flex;
+    gap: 7px;
+}
+
+.lp-dot {
+    width: 11px; height: 11px;
+    border-radius: 50%;
+}
+
+.lp-dot-red { background: #ef4444; }
+.lp-dot-yellow { background: #f59e0b; }
+.lp-dot-green { background: #10b981; }
+
+.lp-terminal-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lp-terminal-body {
+    padding: 2rem 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+    text-align: left;
+}
+
+.lp-stat-box {
+    background: var(--lp-surface);
+    border: 1px solid var(--lp-border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    transition: transform 0.25s, border-color 0.25s;
+}
+
+.lp-stat-box:hover {
+    transform: translateY(-3px);
+    border-color: var(--lp-border-glow);
+}
+
+.lp-stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.lp-stat-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.lp-stat-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem;
+}
+
+.lp-stat-value {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.35rem;
+}
+
+.lp-stat-sub {
+    font-size: 0.78rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* Feature Bento Grid */
+.lp-section {
+    position: relative;
+    padding: 6rem 1.5rem;
+    max-width: 1240px;
+    margin: 0 auto;
+    z-index: 1;
+}
+
+.lp-section-header {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 4rem;
+}
+
+.lp-tagline {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--lp-cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.lp-section-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0 0 1rem;
+}
+
+.lp-section-desc {
+    color: #94a3b8;
+    font-size: 1.05rem;
+}
+
+.lp-bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.5rem;
+}
+
+.lp-bento-card {
+    background: var(--lp-surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--lp-border);
+    border-radius: 20px;
+    padding: 2.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lp-bento-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--lp-border-glow);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(99, 102, 241, 0.15);
+}
+
+.lp-card-span-8 { grid-column: span 8; }
+.lp-card-span-4 { grid-column: span 4; }
+.lp-card-span-6 { grid-column: span 6; }
+.lp-card-span-12 { grid-column: span 12; }
+
+.lp-card-icon-wrap {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+}
+
+.lp-card-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0 0 0.65rem;
+    color: #fff;
+}
+
+.lp-card-desc {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.lp-feature-preview {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+
+/* Voice Chips Simulator */
+.lp-chips-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.lp-chip {
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: #c7d2fe;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+/* Quick Credentials Box */
+.lp-creds-banner {
+    max-width: 900px;
+    margin: 0 auto 5rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(14, 165, 233, 0.1));
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    border-radius: 18px;
+    padding: 1.75rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    text-align: left;
+}
+
+.lp-creds-info h4 {
+    margin: 0 0 0.35rem;
+    font-size: 1.15rem;
+    color: #fff;
+}
+
+.lp-creds-info p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.lp-creds-code {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.65rem 1.2rem;
+    border-radius: 10px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: #38bdf8;
+}
+
+/* Footer */
+.lp-footer {
+    border-top: 1px solid var(--lp-border);
+    padding: 4rem 1.5rem 3rem;
+    background: rgba(9, 13, 22, 0.95);
+    position: relative;
+    z-index: 1;
+}
+
+.lp-footer-content {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.lp-footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.lp-footer-links {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+    margin: 0; padding: 0;
+}
+
+.lp-footer-link {
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.88rem;
+    transition: color 0.2s;
+}
+
+.lp-footer-link:hover { color: #fff; }
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    .lp-card-span-8, .lp-card-span-4, .lp-card-span-6 { grid-column: span 12; }
+    .lp-nav-links { display: none; }
+    .lp-hero { padding-top: 7rem; }
+    .lp-creds-banner { flex-direction: column; text-align: center; justify-content: center; }
+    .lp-footer-content { flex-direction: column; text-align: center; }
+}
+    </style>
 </head>
 <body>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container hero-content">
-            <h1>AI Finance Manager</h1>
-            <p>Track expenses, manage budgets, analyze spending and receive AI-powered financial insights.</p>
-            <div class="btn-group">
-                <a href="pages/register/register.html" class="btn btn-primary">Get Started</a>
-                <a href="#features" class="btn btn-outline">Learn More</a>
+    <!-- Glowing Ambient Mesh -->
+    <div class="bg-mesh"></div>
+
+    <!-- ════ Top Navigation ══════════════════════════════════════════ -->
+    <nav class="lp-navbar">
+        <div class="lp-nav-container">
+            <a href="/index.html" class="lp-logo">
+                <div class="lp-logo-icon"><i class="fas fa-brain"></i></div>
+                <span>FinanceAI</span>
+            </a>
+
+            <ul class="lp-nav-links">
+                <li><a href="#features" class="lp-nav-link">Features</a></li>
+                <li><a href="/pages/voice/voice.html" class="lp-nav-link"><i class="fas fa-microphone text-primary"></i> Voice AI</a></li>
+                <li><a href="/pages/receipts/receipts.html" class="lp-nav-link"><i class="fas fa-receipt text-secondary"></i> Receipt OCR</a></li>
+                <li><a href="/pages/reports/reports.html" class="lp-nav-link">Analytics</a></li>
+                <li><a href="/pages/ai-insights/ai-insights.html" class="lp-nav-link">Insights</a></li>
+            </ul>
+
+            <div class="lp-nav-actions">
+                <a href="/pages/login/login.html" class="lp-btn lp-btn-secondary">Log In</a>
+                <a href="/pages/register/register.html" class="lp-btn lp-btn-primary">
+                    <span>Get Started Free</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ════ Hero Section ════════════════════════════════════════════ -->
+    <section class="lp-hero">
+        <div class="lp-pill-badge">
+            <span class="lp-pulse-dot"></span>
+            <span>Next-Generation Autonomous Wealth Intelligence · ₹ INR Native</span>
+        </div>
+
+        <h1 class="lp-hero-title">
+            Master Your Wealth With <br>
+            <span class="lp-gradient-text">Real-Time AI Intelligence</span>
+        </h1>
+
+        <p class="lp-hero-subtitle">
+            Log expenses with natural voice commands, scan receipts instantly with computer vision OCR, 
+            track dynamic multi-tier budgets, and unlock machine-learned savings recommendations in Indian Rupees (₹).
+        </p>
+
+        <div class="lp-hero-cta">
+            <a href="/pages/dashboard/dashboard.html" class="lp-btn lp-btn-primary" style="padding: 0.9rem 2rem; font-size: 1.05rem;">
+                <i class="fas fa-rocket"></i>
+                <span>Launch Live Dashboard</span>
+            </a>
+            <a href="/pages/voice/voice.html" class="lp-btn lp-btn-secondary" style="padding: 0.9rem 1.8rem; font-size: 1.05rem;">
+                <i class="fas fa-microphone"></i>
+                <span>Try Voice Assistant</span>
+            </a>
+        </div>
+
+        <!-- ════ Quick Demo Login Banner ════════════════════════════ -->
+        <div class="lp-creds-banner">
+            <div class="lp-creds-info">
+                <h4>⚡ Pre-configured Demo Access</h4>
+                <p>Use pre-seeded credentials to explore all features instantly:</p>
+            </div>
+            <div class="lp-creds-code">
+                <span>📧 ashwini.final@finance.com</span>
+                <span>🔑 Password@123</span>
+            </div>
+            <a href="/pages/login/login.html" class="lp-btn lp-btn-primary" style="padding: 0.55rem 1.2rem; font-size: 0.85rem;">
+                Log In Now &rarr;
+            </a>
+        </div>
+
+        <!-- ════ Terminal Window Live Financial Preview ══════════════ -->
+        <div class="lp-terminal-wrapper">
+            <div class="lp-terminal-window">
+                <div class="lp-terminal-header">
+                    <div class="lp-window-dots">
+                        <div class="lp-dot lp-dot-red"></div>
+                        <div class="lp-dot lp-dot-yellow"></div>
+                        <div class="lp-dot lp-dot-green"></div>
+                    </div>
+                    <div class="lp-terminal-title">
+                        <i class="fas fa-shield-halved text-primary"></i>
+                        <span>FinanceAI Enterprise Executive Dashboard (₹ INR)</span>
+                    </div>
+                    <span class="badge badge-success" style="font-size: 0.72rem;">● LIVE SYNC</span>
+                </div>
+
+                <div class="lp-terminal-body">
+                    <!-- Stat 1 -->
+                    <div class="lp-stat-box">
+                        <div class="lp-stat-header">
+                            <span class="lp-stat-label">Available Balance</span>
+                            <div class="lp-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+                                <i class="fas fa-vault"></i>
+                            </div>
+                        </div>
+                        <div class="lp-stat-value">₹1,42,200</div>
+                        <div class="lp-stat-sub" style="color: #10b981;">
+                            <i class="fas fa-arrow-trend-up"></i> +24.8% vs last month
+                        </div>
+                    </div>
+
+                    <!-- Stat 2 -->
+                    <div class="lp-stat-box">
+                        <div class="lp-stat-header">
+                            <span class="lp-stat-label">Monthly Inflow</span>
+                            <div class="lp-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+                                <i class="fas fa-arrow-trend-up"></i>
+                            </div>
+                        </div>
+                        <div class="lp-stat-value text-success" style="color:#10b981;">₹1,84,500</div>
+                        <div class="lp-stat-sub">
+                            <span>Salary + Freelance + Bonus</span>
+                        </div>
+                    </div>
+
+                    <!-- Stat 3 -->
+                    <div class="lp-stat-box">
+                        <div class="lp-stat-header">
+                            <span class="lp-stat-label">Monthly Outflow</span>
+                            <div class="lp-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+                                <i class="fas fa-arrow-trend-down"></i>
+                            </div>
+                        </div>
+                        <div class="lp-stat-value" style="color:#ef4444;">₹42,300</div>
+                        <div class="lp-stat-sub">
+                            <span>23% of ₹1,84.5k Income</span>
+                        </div>
+                    </div>
+
+                    <!-- Stat 4 -->
+                    <div class="lp-stat-box">
+                        <div class="lp-stat-header">
+                            <span class="lp-stat-label">Savings Velocity</span>
+                            <div class="lp-stat-icon" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8;">
+                                <i class="fas fa-piggy-bank"></i>
+                            </div>
+                        </div>
+                        <div class="lp-stat-value" style="color:#38bdf8;">77.1%</div>
+                        <div class="lp-stat-sub" style="color: #10b981;">
+                            <i class="fas fa-circle-check"></i> High Growth Target Met
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="features py-24">
-        <div class="container">
-            <h2 class="text-center mb-8">Powerful Features</h2>
-            <div class="grid">
-                
-                <div class="card">
-                    <div class="card-icon"><i class="fas fa-wallet"></i></div>
-                    <h3>Expense Tracking</h3>
-                    <p>Easily log and categorize your daily expenses in real-time. Keep your spending in check.</p>
-                </div>
+    <!-- ════ Feature Bento Grid ══════════════════════════════════════ -->
+    <section id="features" class="lp-section">
+        <div class="lp-section-header">
+            <span class="lp-tagline">Autonomous Core Modules</span>
+            <h2 class="lp-section-title">Engineered for Frictionless Financial Management</h2>
+            <p class="lp-section-desc">
+                Everything you need to effortlessly manage income, expenses, invoices, and analytics in one cohesive, bank-grade platform.
+            </p>
+        </div>
 
-                <div class="card">
-                    <div class="card-icon"><i class="fas fa-chart-pie"></i></div>
-                    <h3>Budget Management</h3>
-                    <p>Set up custom budgets for different categories and track your progress effortlessly.</p>
+        <div class="lp-bento-grid">
+            <!-- Bento 1: Voice Assistant -->
+            <div class="lp-bento-card lp-card-span-8">
+                <div class="lp-card-icon-wrap" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+                    <i class="fas fa-microphone-lines"></i>
                 </div>
-
-                <div class="card">
-                    <div class="card-icon"><i class="fas fa-robot"></i></div>
-                    <h3>AI Insights</h3>
-                    <p>Get personalized financial advice and spending patterns analyzed by AI.</p>
+                <h3 class="lp-card-title">🎙️ Conversational Voice Finance Assistant</h3>
+                <p class="lp-card-desc">
+                    Log multi-digit transactions and query your budget in under 200ms using continuous NLP speech recognition with offline and text failover.
+                </p>
+                <div class="lp-feature-preview">
+                    <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:0.6rem; font-weight:700;">TAP TO TRY VOICE NLP COMMANDS:</div>
+                    <div class="lp-chips-row">
+                        <span class="lp-chip">"I spent ₹500 on Food"</span>
+                        <span class="lp-chip">"I received ₹25,000 Salary"</span>
+                        <span class="lp-chip">"What is my remaining budget?"</span>
+                        <span class="lp-chip">"What is my balance?"</span>
+                    </div>
                 </div>
+            </div>
 
-                <div class="card">
-                    <div class="card-icon"><i class="fas fa-receipt"></i></div>
-                    <h3>Receipt OCR</h3>
-                    <p>Scan and extract data directly from your receipts. No manual entry needed.</p>
+            <!-- Bento 2: OCR Scanner -->
+            <div class="lp-bento-card lp-card-span-4">
+                <div class="lp-card-icon-wrap" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8;">
+                    <i class="fas fa-receipt"></i>
                 </div>
-
-                <div class="card">
-                    <div class="card-icon"><i class="fas fa-microphone"></i></div>
-                    <h3>Voice Expense Entry</h3>
-                    <p>Log your expenses seamlessly using just your voice while on the go.</p>
+                <h3 class="lp-card-title">🧾 AI Receipt OCR Scanner</h3>
+                <p class="lp-card-desc">
+                    Drag and drop receipts or bills. Machine vision auto-extracts merchant names, dates, and amounts with automated category suggestions.
+                </p>
+                <div class="lp-feature-preview" style="text-align: center; padding: 1rem;">
+                    <i class="fas fa-cloud-arrow-up" style="font-size: 1.8rem; color: #0ea5e9; margin-bottom: 0.5rem;"></i>
+                    <div style="font-size: 0.8rem; color: #94a3b8;">Supports JPG, PNG, WEBP with Jimp preprocessing</div>
                 </div>
+            </div>
 
-                <div class="card">
-                    <div class="card-icon"><i class="fas fa-chart-line"></i></div>
-                    <h3>Financial Reports</h3>
-                    <p>Generate comprehensive reports to see your financial health at a glance.</p>
+            <!-- Bento 3: AI Insights -->
+            <div class="lp-bento-card lp-card-span-4">
+                <div class="lp-card-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+                    <i class="fas fa-wand-magic-sparkles"></i>
                 </div>
+                <h3 class="lp-card-title">🧠 Proactive AI Insights</h3>
+                <p class="lp-card-desc">
+                    Machine-learned algorithms analyze monthly spending velocity and alert you to recurring cost spikes before they deplete your budget.
+                </p>
+            </div>
 
+            <!-- Bento 4: Dynamic Budgeting -->
+            <div class="lp-bento-card lp-card-span-4">
+                <div class="lp-card-icon-wrap" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <h3 class="lp-card-title">🎯 Multi-Tier Smart Budgets</h3>
+                <p class="lp-card-desc">
+                    Establish custom spending limits across categories (Food, Travel, Bills, Rent) with live progress gauges and threshold notifications.
+                </p>
+            </div>
+
+            <!-- Bento 5: Reports & Analytics -->
+            <div class="lp-bento-card lp-card-span-4">
+                <div class="lp-card-icon-wrap" style="background: rgba(244, 63, 94, 0.15); color: #fb7185;">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <h3 class="lp-card-title">📊 Executive Reports & Exports</h3>
+                <p class="lp-card-desc">
+                    Generate instant PDF and CSV financial summaries, cash flow curves, and category breakdowns ready for tax filing or audits.
+                </p>
             </div>
         </div>
     </section>
 
-    <!-- Technology Section -->
-    <section class="py-24">
-        <div class="container text-center">
-            <h2 class="mb-8">Built With Modern Technologies</h2>
-            <div class="tech-stack">
-                <div class="tech-item">HTML</div>
-                <div class="tech-item">CSS</div>
-                <div class="tech-item">JavaScript</div>
-                <div class="tech-item">Node.js</div>
-                <div class="tech-item">Express.js</div>
-                <div class="tech-item">MySQL</div>
+    <!-- ════ Direct Access Portal Section ═══════════════════════════ -->
+    <section class="lp-section" style="padding-top: 0;">
+        <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(14, 165, 233, 0.15)); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 24px; padding: 4rem 2rem; text-align: center;">
+            <h2 style="font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight: 800; margin: 0 0 1rem; color: #fff;">
+                Ready to Take Total Control of Your Finances?
+            </h2>
+            <p style="color: #cbd5e1; max-width: 600px; margin: 0 auto 2.5rem; font-size: 1.05rem;">
+                Sign up in under 30 seconds or jump straight into the live dashboard with pre-configured demo credentials.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="/pages/register/register.html" class="lp-btn lp-btn-primary" style="padding: 0.9rem 2.2rem; font-size: 1rem;">
+                    Create Free Account &rarr;
+                </a>
+                <a href="/pages/dashboard/dashboard.html" class="lp-btn lp-btn-secondary" style="padding: 0.9rem 2rem; font-size: 1rem;">
+                    Go to Dashboard
+                </a>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container text-center">
-            <h3 class="mb-2">AI Finance Manager</h3>
-            <p>&copy; 2026 AI Finance Manager. All rights reserved.</p>
+    <!-- ════ Footer ══════════════════════════════════════════════════ -->
+    <footer class="lp-footer">
+        <div class="lp-footer-content">
+            <div class="lp-footer-left">
+                <a href="/index.html" class="lp-logo">
+                    <div class="lp-logo-icon" style="width:30px;height:30px;font-size:0.9rem;"><i class="fas fa-brain"></i></div>
+                    <span style="font-size:1.1rem;">FinanceAI</span>
+                </a>
+                <span style="font-size: 0.82rem; color: #64748b;">
+                    &copy; 2026 AI Finance Manager. All rights reserved. Built for Indian Rupees (₹).
+                </span>
+            </div>
+
+            <ul class="lp-footer-links">
+                <li><a href="/pages/dashboard/dashboard.html" class="lp-footer-link">Dashboard</a></li>
+                <li><a href="/pages/voice/voice.html" class="lp-footer-link">Voice Assistant</a></li>
+                <li><a href="/pages/receipts/receipts.html" class="lp-footer-link">Receipt OCR</a></li>
+                <li><a href="/pages/reports/reports.html" class="lp-footer-link">Reports</a></li>
+                <li><a href="/pages/settings/settings.html" class="lp-footer-link">Settings</a></li>
+            </ul>
+
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: #10b981;">
+                <span class="lp-pulse-dot" style="width:6px;height:6px;"></span>
+                <span>All Systems Operational</span>
+            </div>
         </div>
     </footer>
 
+    <script src="/js/auth.js"></script>
+    <script src="/js/api.js"></script>
 </body>
 </html>

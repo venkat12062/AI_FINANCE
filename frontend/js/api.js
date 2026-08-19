@@ -1,21 +1,43 @@
 /**
  * Frontend API Utility
- * Centralizes API calls and automatically injects JWT Authorization headers.
- * Automatically intercepts 401 Unauthorized responses to trigger logout.
+ * Centralizes API calls, dynamically resolves Railway backend in cloud/Vercel environments,
+ * automatically injects JWT Authorization headers, and handles 401 session expiration.
  */
+
+const RAILWAY_BACKEND_URL = 'https://aifinance-production-d8db.up.railway.app';
+
+const getApiBaseUrl = () => {
+    if (typeof window === 'undefined') return 'http://localhost:5000/api';
+    const host = window.location.hostname;
+    
+    // If running locally (localhost / 127.0.0.1) on port 5000/8080/etc., use same-origin /api
+    if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0') {
+        // If served by Express backend directly
+        return window.location.origin + '/api';
+    }
+    
+    // If deployed on Vercel, Netlify, or any external hosting domain, connect to Railway backend
+    return `${RAILWAY_BACKEND_URL}/api`;
+};
 
 const Api = {
     consts: {
-        BASE_URL: (typeof window !== 'undefined' && window.location.origin ? window.location.origin + '/api' : 'http://localhost:5000/api')
+        get BASE_URL() {
+            return getApiBaseUrl();
+        }
     },
 
+    getBaseUrl: () => getApiBaseUrl(),
+
     /**
-     * Helper to perform fetch requests with auth headers.
-     * @param {string} endpoint - e.g. '/auth/me'
+     * Helper to perform fetch requests with auth headers and dynamic backend URL.
+     * @param {string} endpoint - e.g. '/dashboard/overview'
      * @param {object} options - Fetch options (method, body, etc)
      */
     request: async (endpoint, options = {}) => {
-        const url = `${Api.consts.BASE_URL}${endpoint}`;
+        // Ensure endpoint starts with a slash
+        const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+        const url = `${getApiBaseUrl()}${cleanEndpoint}`;
         
         // Merge headers
         const headers = {
@@ -39,14 +61,16 @@ const Api = {
             // Intercept 401 Unauthorized globally
             if (response.status === 401) {
                 if (typeof Auth !== 'undefined') {
-                    // Show message (could use a toast/alert in real app)
-                    alert('Session expired. Please login again.');
-                    Auth.logout();
+                    // Only redirect if not already on the login or register page
+                    const path = window.location.pathname;
+                    if (!path.includes('login.html') && !path.includes('register.html') && path !== '/') {
+                        Auth.logout();
+                    }
                 }
-                return { success: false, message: 'Session expired' };
+                return { status: 401, ok: false, data: { success: false, message: 'Session expired' } };
             }
 
-            const data = await response.json();
+            const data = await response.json().catch(() => ({}));
             return {
                 status: response.status,
                 ok: response.ok,
@@ -57,7 +81,7 @@ const Api = {
             return {
                 status: 500,
                 ok: false,
-                data: { success: false, message: 'Network error. Please try again later.' }
+                data: { success: false, message: 'Cannot reach backend server. Please verify your connection.' }
             };
         }
     },
@@ -86,3 +110,9 @@ const Api = {
         return Api.request(endpoint, { method: 'DELETE', headers });
     }
 };
+
+// Global export
+if (typeof window !== 'undefined') {
+    window.Api = Api;
+    window.getApiBaseUrl = getApiBaseUrl;
+}

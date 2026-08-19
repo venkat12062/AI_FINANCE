@@ -169,17 +169,10 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSpinner.classList.remove('hidden');
 
         try {
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
+            const apiRes = await Api.post('/auth/register', payload);
+            const data = apiRes.data;
 
-            const data = await response.json();
-
-            if (response.ok && data.success) {
+            if ((apiRes.ok || apiRes.status === 201 || apiRes.status === 200) && data && data.success) {
                 // Success
                 alertBox.textContent = 'Registration successful! Redirecting to login...';
                 alertBox.className = 'alert alert-success';
@@ -187,10 +180,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 validatePasswordStrength(''); // reset rules
                 setTimeout(() => {
                     window.location.href = '/pages/login/login.html';
-                }, 1500);
+                }, 1200);
             } else {
                 // Handle API Errors
-                if (data.errors && data.errors.length > 0) {
+                if (data && data.errors && data.errors.length > 0) {
                     // Map field errors to inputs
                     data.errors.forEach(err => {
                         const errorEl = document.getElementById(`${err.field}-error`);
@@ -201,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 // Show general alert
-                alertBox.textContent = data.message || 'Registration failed';
+                alertBox.textContent = (data && data.message) || 'Registration failed';
                 alertBox.className = 'alert alert-error';
             }
         } catch (error) {

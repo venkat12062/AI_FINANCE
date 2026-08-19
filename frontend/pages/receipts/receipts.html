@@ -527,9 +527,11 @@
         try {
             const token = typeof Auth !== 'undefined' ? Auth.getToken() : '';
             const formData = new FormData();
-            formData.append('file', selectedFile);
+            const uploadUrl = (typeof Api !== 'undefined' && Api.getBaseUrl)
+                ? `${Api.getBaseUrl()}/receipts/upload`
+                : '/api/receipts/upload';
 
-            const res = await fetch('/api/receipts/upload', {
+            const res = await fetch(uploadUrl, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
