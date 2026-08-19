@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Planner - AI Finance Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/pages/categories/categories.css">
+    <link rel="stylesheet" href="/pages/income/income.css">
+    <link rel="stylesheet" href="/pages/budgets/budgets.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="/pages/dashboard/dashboard.html" class="sidebar-logo">
+                    <i class="fas fa-brain"></i>
+                    <span>FinanceAI</span>
+                </a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Core</div>
+                <a href="/pages/dashboard/dashboard.html" class="nav-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/pages/income/income.html" class="nav-item">
+                    <i class="fas fa-arrow-trend-up"></i>
+                    <span>Income</span>
+                </a>
+                <a href="/pages/expenses/expenses.html" class="nav-item">
+                    <i class="fas fa-arrow-trend-down"></i>
+                    <span>Expenses</span>
+                </a>
+                <a href="/pages/budgets/budgets.html" class="nav-item active">
+                    <i class="fas fa-wallet"></i>
+                    <span>Budgets</span>
+                </a>
+                <a href="/pages/categories/categories.html" class="nav-item">
+                    <i class="fas fa-tags"></i>
+                    <span>Categories</span>
+                </a>
+
+                <div class="nav-section-title">Intelligence & Tools</div>
+                <a href="/pages/reports/reports.html" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="/pages/ai-insights/ai-insights.html" class="nav-item">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <span>AI Insights</span>
+                </a>
+                <a href="/pages/receipts/receipts.html" class="nav-item">
+                    <i class="fas fa-receipt"></i>
+                    <span>Receipt OCR</span>
+                </a>
+                <a href="/pages/voice/voice.html" class="nav-item">
+                    <i class="fas fa-microphone"></i>
+                    <span>Voice Assistant</span>
+                </a>
+
+                <div class="nav-section-title">Account</div>
+                <a href="/pages/notifications/notifications.html" class="nav-item">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                    <span class="nav-badge" id="sidebar-notif-badge" style="display:none;">0</span>
+                </a>
+                <a href="/pages/settings/settings.html" class="nav-item">
+                    <i class="fas fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile-badge">
+                    <div class="user-avatar" id="sidebar-avatar">A</div>
+                    <div class="user-info">
+                        <div class="user-name" id="sidebar-user-name">User</div>
+                        <div class="user-role">Free Tier</div>
+                    </div>
+                    <a href="#" id="logout-btn" title="Logout" style="color: var(--text-muted);"><i class="fas fa-arrow-right-from-bracket"></i></a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-wrapper">
+            <!-- Header -->
+            <header class="top-header">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="mobile-nav-toggle" id="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+                    <div class="header-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search budgets, limits...">
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button id="open-add-modal-btn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Set Budget
+                    </button>
+                    <a href="/pages/notifications/notifications.html" class="header-btn" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge-dot" id="header-notif-dot" style="display:none;"></span>
+                    </a>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <!-- Page Title -->
+                <div class="page-header">
+                    <div class="page-title-group">
+                        <h1>Budget Planning & Limits</h1>
+                        <p>Set spending ceilings and monitor utilization in real time.</p>
+                    </div>
+                </div>
+
+                <div id="global-alert" class="alert hidden" style="margin-bottom: 1.5rem;"></div>
+
+                <!-- ALERTS CONTAINER -->
+                <div id="alerts-container" class="alerts-container mb-4"></div>
+
+                <!-- SUMMARY CARDS -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Total Allocated</span>
+                            <div class="kpi-icon-wrap" style="color: var(--primary); background: var(--primary-glow);"><i class="fas fa-wallet"></i></div>
+                        </div>
+                        <div class="kpi-value" id="summary-total">$0.00</div>
+                        <div class="kpi-footer"><span class="trend-badge neutral">All budgets</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Total Spent</span>
+                            <div class="kpi-icon-wrap" style="color: var(--danger); background: var(--danger-bg);"><i class="fas fa-credit-card"></i></div>
+                        </div>
+                        <div class="kpi-value text-danger" id="summary-spent">$0.00</div>
+                        <div class="kpi-footer"><span class="trend-badge negative">Against limits</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Remaining Cushion</span>
+                            <div class="kpi-icon-wrap" style="color: var(--success); background: var(--success-bg);"><i class="fas fa-shield-halved"></i></div>
+                        </div>
+                        <div class="kpi-value text-success" id="summary-remaining">$0.00</div>
+                        <div class="kpi-footer"><span class="trend-badge positive">Available balance</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Average Utilization</span>
+                            <div class="kpi-icon-wrap" style="color: var(--warning); background: var(--warning-bg);"><i class="fas fa-percent"></i></div>
+                        </div>
+                        <div class="kpi-value" id="summary-usage">0%</div>
+                        <div class="kpi-footer"><span class="trend-badge neutral">Discipline rate</span></div>
+                    </div>
+                </div>
+
+                <!-- CURRENT MONTH WIDGET -->
+                <div id="current-month-widget" class="card card-glass mb-8 hidden">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-bullseye text-primary"></i> Current Month Budget Velocity</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                            <span>Limit: <strong id="current-limit">$0.00</strong></span>
+                            <span>Spent: <strong id="current-spent" class="text-danger">$0.00</strong></span>
+                            <span>Remaining: <strong id="current-remaining" class="text-success">$0.00</strong></span>
+                        </div>
+                        <div style="height: 12px; background: var(--bg-surface-elevated); border-radius: 6px; overflow: hidden;">
+                            <div id="current-progress" class="progress-bar-fill" style="width: 0%; height: 100%; transition: width 0.8s;"></div>
+                        </div>
+                        <div id="current-progress-text" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-align: right;">0% Used</div>
+                    </div>
+                </div>
+
+                <!-- TABLE -->
+                <div class="card card-glass">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-table text-secondary"></i> All Budget Periods</div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table" id="budget-table">
+                            <thead>
+                                <tr>
+                                    <th>Period</th>
+                                    <th>Limit</th>
+                                    <th>Spent</th>
+                                    <th>Remaining</th>
+                                    <th>Utilization</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="budget-tbody">
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted" style="padding: 2rem;">Loading budgets...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Budget Modal -->
+    <div id="budget-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title" style="margin:0; font-size:1.15rem;">Set Monthly Budget</h3>
+                <button class="close-modal-btn" style="background:none; border:none; color:var(--text-muted); font-size:1.4rem; cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="budget-form" novalidate>
+                    <input type="hidden" id="budget-id">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="month">Month</label>
+                        <select id="month" name="month" required class="form-control">
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                        <small class="error-text" id="month-error" style="color:var(--danger);"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="year">Year</label>
+                        <input type="number" id="year" name="year" required class="form-control" value="2026">
+                        <small class="error-text" id="year-error" style="color:var(--danger);"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="budgetLimit">Budget Limit ($)</label>
+                        <input type="number" id="budgetLimit" name="budgetLimit" step="0.01" min="0.01" required class="form-control" placeholder="1000.00">
+                        <small class="error-text" id="budgetLimit-error" style="color:var(--danger);"></small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal-btn">Cancel</button>
+                <button type="submit" form="budget-form" id="save-btn" class="btn btn-primary">
+                    <span id="save-btn-text">Save</span>
+                    <i class="fas fa-spinner fa-spin hidden" id="save-btn-spinner"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/pages/budgets/budgets.js"></script>
+</body>
+</html>

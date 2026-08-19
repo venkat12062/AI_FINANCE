@@ -1,0 +1,141 @@
+/* Reports Page Specific CSS */
+
+.filter-panel {
+    padding: 1.25rem 1.5rem;
+}
+
+.filter-presets {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.preset-pill {
+    padding: 0.45rem 0.9rem;
+    border-radius: var(--radius-full);
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: 0.825rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.preset-pill:hover {
+    color: var(--text-primary);
+    border-color: var(--border-medium);
+    background: var(--border-subtle);
+}
+
+.preset-pill.active {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 2px 10px var(--primary-glow);
+}
+
+.custom-date-row {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: flex-end;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.date-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.date-input-group label {
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.date-input-group input {
+    min-width: 180px;
+}
+
+/* Charts Grid */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.full-width-chart {
+    grid-column: span 2;
+}
+
+.chart-card {
+    min-height: 360px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    flex: 1;
+}
+
+/* Export Dropdown */
+.export-dropdown-wrap {
+    position: relative;
+}
+
+.export-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xl);
+    width: 230px;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    padding: 0.5rem;
+    backdrop-filter: var(--glass-blur);
+}
+
+.export-dropdown.show {
+    display: flex;
+}
+
+.export-opt {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: left;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.export-opt:hover {
+    background: var(--bg-surface-elevated);
+}
+
+@media (max-width: 900px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+    .full-width-chart {
+        grid-column: span 1;
+    }
+}

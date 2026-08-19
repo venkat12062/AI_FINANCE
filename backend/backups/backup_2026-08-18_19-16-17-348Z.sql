@@ -1,0 +1,56 @@
+-- AI Finance Manager Database Backup
+-- Generated: 2026-08-18T19:16:17.348Z
+
+-- Table: users
+INSERT INTO users (user_id, name, email, password_hash, created_at, updated_at) VALUES ('1', 'Ashwini', 'ashwini.test@finance.com', '$2b$10$Fp1ZSTzfTqnFIKAyffM/9uHOFmlWAnL9MkxX9yoBpO/HC0rffbj0C', '2026-08-16 20:09:52', '2026-08-16 20:09:52');
+INSERT INTO users (user_id, name, email, password_hash, created_at, updated_at) VALUES ('2', 'Ashwini Live', 'ashwini.live@finance.com', '$2b$10$r0JHfqUgwFYnAxwfSgGt.uBvHrXqoxQp2Rp0psqJrhNCHLujKf8zS', '2026-08-16 20:16:41', '2026-08-16 20:16:41');
+INSERT INTO users (user_id, name, email, password_hash, created_at, updated_at) VALUES ('3', 'Ashwini', 'ashwini@finance.com', '$2b$10$Pv4l.sW/tbd9v2Y7xTU7BulGKm/0IFIVSPfuwQ0A889mWQjkbNYzG', '2026-08-16 20:22:22', '2026-08-16 20:22:22');
+INSERT INTO users (user_id, name, email, password_hash, created_at, updated_at) VALUES ('4', 'Ashwini Final', 'ashwini.final@finance.com', '$2b$10$mW6uhTmDhol/ZqcHeYT0kO7KlHFYeDwBKsbHyLHWJDM2IKFBWjVIy', '2026-08-18 19:03:26', '2026-08-18 19:03:26');
+INSERT INTO users (user_id, name, email, password_hash, created_at, updated_at) VALUES ('5', 'Audit User', 'audit_1787080505397@finance.com', '$2b$10$efC2.zfmcB6/EAow2HzvZOiRRb.L01X1iPsg9XlJzu1AJzGrWRFvK', '2026-08-18 19:15:05', '2026-08-18 19:15:05');
+INSERT INTO users (user_id, name, email, password_hash, created_at, updated_at) VALUES ('6', 'Audit User Updated', 'audit_1787080576893@finance.com', '$2b$10$DNlnlj2K/RCCXe9pl1XI2OA3geZnsWC7gBTghIcBDwR9xCM8LiEoi', '2026-08-18 19:16:17', '2026-08-18 19:16:17');
+
+-- Table: categories
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('1', NULL, 'Food', 'Expense');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('2', NULL, 'Travel', 'Expense');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('3', NULL, 'Shopping', 'Expense');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('4', NULL, 'Medical', 'Expense');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('5', NULL, 'Education', 'Expense');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('6', NULL, 'Entertainment', 'Expense');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('7', NULL, 'Bills', 'Expense');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('8', NULL, 'Rent', 'Expense');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('9', NULL, 'Salary', 'Income');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('10', NULL, 'Freelance', 'Income');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('11', NULL, 'Business', 'Income');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('12', NULL, 'Investment', 'Income');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('13', NULL, 'Bonus', 'Income');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('14', '3', 'salary', 'Income');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('15', '5', 'TestCat_1787080505671', 'Expense');
+INSERT INTO categories (category_id, user_id, category_name, category_type) VALUES ('16', '6', 'TestCat_1787080577199', 'Expense');
+
+-- Table: transactions
+INSERT INTO transactions (transaction_id, user_id, category_id, amount, type, description, transaction_date, created_at, updated_at) VALUES ('1', '1', '1', '250', 'Expense', 'Dinner with friends', '2026-08-16', '2026-08-16 20:10:14', '2026-08-16 20:10:14');
+INSERT INTO transactions (transaction_id, user_id, category_id, amount, type, description, transaction_date, created_at, updated_at) VALUES ('2', '1', '9', '5000', 'Income', 'Monthly Salary', '2026-08-16', '2026-08-16 20:11:57', '2026-08-16 20:11:57');
+INSERT INTO transactions (transaction_id, user_id, category_id, amount, type, description, transaction_date, created_at, updated_at) VALUES ('3', '3', '9', '50000', 'Income', '', '2026-08-16', '2026-08-16 20:29:58', '2026-08-16 20:29:58');
+INSERT INTO transactions (transaction_id, user_id, category_id, amount, type, description, transaction_date, created_at, updated_at) VALUES ('4', '3', '1', '100', 'Expense', '', '2026-08-16', '2026-08-16 20:36:13', '2026-08-16 20:36:13');
+INSERT INTO transactions (transaction_id, user_id, category_id, amount, type, description, transaction_date, created_at, updated_at) VALUES ('5', '5', '9', '4500', 'Income', 'Monthly Salary Audit', '2026-08-16', '2026-08-18 19:15:05', '2026-08-18 19:15:05');
+INSERT INTO transactions (transaction_id, user_id, category_id, amount, type, description, transaction_date, created_at, updated_at) VALUES ('6', '5', '1', '350', 'Expense', 'Groceries Audit', '2026-08-16', '2026-08-18 19:15:05', '2026-08-18 19:15:05');
+INSERT INTO transactions (transaction_id, user_id, category_id, amount, type, description, transaction_date, created_at, updated_at) VALUES ('7', '5', '1', '80', 'Expense', 'Spent 80 dollars on groceries yesterday', '2026-08-17', '2026-08-18 19:15:05', '2026-08-18 19:15:05');
+INSERT INTO transactions (transaction_id, user_id, category_id, amount, type, description, transaction_date, created_at, updated_at) VALUES ('8', '6', '9', '4500', 'Income', 'Monthly Salary Audit', '2026-08-16', '2026-08-18 19:16:17', '2026-08-18 19:16:17');
+INSERT INTO transactions (transaction_id, user_id, category_id, amount, type, description, transaction_date, created_at, updated_at) VALUES ('9', '6', '1', '350', 'Expense', 'Groceries Audit', '2026-08-16', '2026-08-18 19:16:17', '2026-08-18 19:16:17');
+INSERT INTO transactions (transaction_id, user_id, category_id, amount, type, description, transaction_date, created_at, updated_at) VALUES ('10', '6', '1', '80', 'Expense', 'Spent 80 dollars on groceries yesterday', '2026-08-17', '2026-08-18 19:16:17', '2026-08-18 19:16:17');
+
+-- Table: budgets
+INSERT INTO budgets (budget_id, user_id, month, year, budget_limit) VALUES ('1', '1', '8', '2026', '3000');
+INSERT INTO budgets (budget_id, user_id, month, year, budget_limit) VALUES ('2', '5', '8', '2026', '2000');
+INSERT INTO budgets (budget_id, user_id, month, year, budget_limit) VALUES ('3', '6', '8', '2026', '2000');
+
+-- Table: ai_insights
+INSERT INTO ai_insights (insight_id, user_id, message, insight_type, created_at) VALUES ('3', '5', 'Excellent work! Your savings rate is 92% this month.', 'Achievement', '2026-08-18 19:15:05');
+INSERT INTO ai_insights (insight_id, user_id, message, insight_type, created_at) VALUES ('4', '5', 'Spending concentration: 100% of your expenses went to Food.', 'Warning', '2026-08-18 19:15:05');
+INSERT INTO ai_insights (insight_id, user_id, message, insight_type, created_at) VALUES ('7', '6', 'Excellent work! Your savings rate is 92% this month.', 'Achievement', '2026-08-18 19:16:17');
+INSERT INTO ai_insights (insight_id, user_id, message, insight_type, created_at) VALUES ('8', '6', 'Spending concentration: 100% of your expenses went to Food.', 'Warning', '2026-08-18 19:16:17');
+
+-- Table: voice_entries
+INSERT INTO voice_entries (voice_id, user_id, voice_text, parsed_amount, parsed_type, parsed_category, created_at) VALUES ('1', '5', 'Spent 80 dollars on groceries yesterday', '80', 'Expense', 'Other Expense', '2026-08-18 19:15:05');
+INSERT INTO voice_entries (voice_id, user_id, voice_text, parsed_amount, parsed_type, parsed_category, created_at) VALUES ('2', '6', 'Spent 80 dollars on groceries yesterday', '80', 'Expense', 'Other Expense', '2026-08-18 19:16:17');
+

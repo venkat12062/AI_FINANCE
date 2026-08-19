@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt OCR — AI Finance Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+/* ═══ Receipt OCR Page Styles ═══════════════════════════════════════════ */
+
+/* Drop Zone */
+.drop-zone {
+    border: 2px dashed var(--border-medium, rgba(255,255,255,0.2));
+    border-radius: var(--radius-lg, 16px);
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+}
+.drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--primary, #6366f1);
+    background: rgba(99,102,241,0.06);
+}
+.drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0;
+    cursor: pointer; width: 100%; height: 100%;
+}
+.drop-icon {
+    font-size: 3rem; color: var(--primary, #6366f1);
+    margin-bottom: 1rem; display: block;
+}
+
+/* Processing overlay */
+.ocr-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 999;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 1rem;
+}
+.ocr-overlay.show { display: flex; }
+.ocr-overlay p { color: #fff; font-size: 1.1rem; font-weight: 600; }
+.ocr-spinner { font-size: 3rem; color: var(--primary, #6366f1); animation: spin 1.2s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ocr-step { font-size: 0.85rem; color: rgba(255,255,255,0.7); }
+
+/* Result Panel */
+.result-panel {
+    display: none;
+    background: var(--bg-surface-elevated, #1e293b);
+    border: 1px solid var(--border-subtle, rgba(255,255,255,0.1));
+    border-radius: var(--radius-lg, 16px);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+.result-panel.show { display: block; }
+.result-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.4rem;
+    background: rgba(16,185,129,0.1);
+    border-bottom: 1px solid rgba(16,185,129,0.2);
+}
+.result-body { padding: 1.4rem; }
+
+/* Confidence badges */
+.conf-badge { font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 99px; font-weight: 700; }
+.conf-extracted { background: rgba(16,185,129,0.2); color: #10b981; }
+.conf-default    { background: rgba(245,158,11,0.2); color: #f59e0b; }
+.conf-missing    { background: rgba(239,68,68,0.15);  color: #ef4444; }
+
+/* OCR text output */
+.ocr-raw {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 0.75rem;
+    background: var(--bg-base, #0f172a);
+    border-radius: 8px;
+    color: var(--text-secondary, #cbd5e1);
+    line-height: 1.5;
+}
+
+/* Receipt thumbnail */
+.receipt-thumb {
+    width: 56px; height: 56px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.receipt-thumb:hover { transform: scale(1.1); }
+
+/* Image preview modal */
+.img-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); z-index: 1000;
+    align-items: center; justify-content: center;
+}
+.img-modal.show { display: flex; }
+.img-modal img {
+    max-width: 92vw; max-height: 90vh;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+}
+.img-modal-close {
+    position: absolute; top: 1.5rem; right: 1.5rem;
+    background: rgba(255,255,255,0.1); border: none;
+    color: #fff; font-size: 1.4rem;
+    width: 42px; height: 42px; border-radius: 50%;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+
+/* Stats row */
+.ocr-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem; margin-bottom: 1.5rem;
+}
+.stat-card {
+    padding: 0.9rem 1rem;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px; text-align: center;
+}
+.stat-value { font-size: 1.3rem; font-weight: 800; color: var(--primary); }
+.stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+/* Mobile */
+@media (max-width: 640px) {
+    .drop-zone { padding: 2rem 1rem; }
+    .result-grid { grid-template-columns: 1fr !important; }
+}
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- ════ Sidebar ════════════════════════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="/pages/dashboard/dashboard.html" class="sidebar-logo">
+                <i class="fas fa-brain"></i><span>FinanceAI</span>
+            </a>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Core</div>
+            <a href="/pages/dashboard/dashboard.html"   class="nav-item"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+            <a href="/pages/income/income.html"         class="nav-item"><i class="fas fa-arrow-trend-up"></i><span>Income</span></a>
+            <a href="/pages/expenses/expenses.html"     class="nav-item"><i class="fas fa-arrow-trend-down"></i><span>Expenses</span></a>
+            <a href="/pages/budgets/budgets.html"       class="nav-item"><i class="fas fa-wallet"></i><span>Budgets</span></a>
+            <a href="/pages/categories/categories.html" class="nav-item"><i class="fas fa-tags"></i><span>Categories</span></a>
+            <div class="nav-section-title">Intelligence</div>
+            <a href="/pages/reports/reports.html"       class="nav-item"><i class="fas fa-chart-line"></i><span>Reports</span></a>
+            <a href="/pages/ai-insights/ai-insights.html" class="nav-item"><i class="fas fa-wand-magic-sparkles"></i><span>AI Insights</span></a>
+            <a href="/pages/receipts/receipts.html"     class="nav-item active"><i class="fas fa-receipt"></i><span>Receipt OCR</span></a>
+            <a href="/pages/voice/voice.html"           class="nav-item"><i class="fas fa-microphone"></i><span>Voice Assistant</span></a>
+            <div class="nav-section-title">Account</div>
+            <a href="/pages/notifications/notifications.html" class="nav-item"><i class="fas fa-bell"></i><span>Notifications</span></a>
+            <a href="/pages/settings/settings.html"     class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-profile-badge">
+                <div class="user-avatar" id="sidebar-avatar">A</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebar-user-name">User</div>
+                    <div class="user-role">AI Finance</div>
+                </div>
+                <a href="#" id="logout-btn" title="Logout" style="color:var(--text-muted)">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ════ Main ════════════════════════════════════════════════════ -->
+    <main class="main-wrapper">
+        <header class="top-header">
+            <div style="display:flex;align-items:center;gap:1rem">
+                <button class="mobile-nav-toggle" id="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+                <div class="header-search">
+                    <i class="fas fa-receipt"></i>
+                    <input type="text" placeholder="Receipt OCR Scanner — ₹ INR">
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="/pages/notifications/notifications.html" class="header-btn"><i class="fas fa-bell"></i></a>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <div class="page-header">
+                <div class="page-title-group">
+                    <h1>🧾 Receipt OCR Scanner</h1>
+                    <p>Upload any bill, invoice, or receipt — AI extracts amount, date, merchant &amp; category automatically.</p>
+                </div>
+            </div>
+
+            <!-- Global Alert -->
+            <div id="global-alert" class="alert hidden" style="margin-bottom:1.5rem"></div>
+
+            <!-- Stats Row -->
+            <div class="ocr-stats" id="ocr-stats" style="display:none">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-total">0</div>
+                    <div class="stat-label">Receipts Processed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-amount">₹0</div>
+                    <div class="stat-label">Total Extracted</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-success-rate">—</div>
+                    <div class="stat-label">Extraction Rate</div>
+                </div>
+            </div>
+
+            <!-- ══ Upload Card ═══════════════════════════════════════ -->
+            <div class="card card-glass mb-8">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-cloud-arrow-up text-primary"></i>
+                        <span>Upload Receipt Image</span>
+                    </div>
+                    <span class="badge badge-primary" style="font-size:.7rem">AI OCR</span>
+                </div>
+
+                <!-- Drop Zone -->
+                <div class="drop-zone" id="drop-zone">
+                    <input type="file" id="file-input" accept="image/jpeg,image/jpg,image/png,image/webp">
+                    <i class="fas fa-file-invoice-dollar drop-icon"></i>
+                    <p style="font-weight:700;color:var(--text-primary);margin:0 0 0.35rem">
+                        Click to select or drag &amp; drop receipt
+                    </p>
+                    <span style="font-size:0.83rem;color:var(--text-muted)">
+                        Supports: JPG, JPEG, PNG, WEBP — Max 5 MB
+                    </span>
+                </div>
+
+                <!-- File preview row -->
+                <div id="file-preview" style="display:none;align-items:center;justify-content:space-between;
+                     margin-top:1rem;padding:0.85rem 1rem;
+                     background:var(--bg-surface-elevated);border-radius:12px;gap:1rem;flex-wrap:wrap">
+                    <div style="display:flex;align-items:center;gap:0.75rem">
+                        <img id="file-thumb" src="" alt="preview"
+                             style="width:52px;height:52px;object-fit:cover;border-radius:8px;border:1px solid var(--border-subtle)">
+                        <div>
+                            <div id="file-name" style="font-weight:700;font-size:0.9rem"></div>
+                            <div id="file-size" style="font-size:0.78rem;color:var(--text-muted)"></div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:0.5rem">
+                        <button class="btn btn-secondary" id="clear-file-btn">
+                            <i class="fas fa-xmark"></i> Clear
+                        </button>
+                        <button class="btn btn-primary" id="upload-btn">
+                            <i class="fas fa-wand-magic-sparkles"></i> Scan with OCR
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ OCR Result Panel ═══════════════════════════════════ -->
+            <div class="result-panel" id="result-panel">
+                <div class="result-header">
+                    <div style="display:flex;align-items:center;gap:0.65rem">
+                        <i class="fas fa-check-circle" style="color:#10b981;font-size:1.2rem"></i>
+                        <strong style="color:var(--text-primary)">OCR Complete — Review &amp; Save</strong>
+                    </div>
+                    <button class="btn btn-secondary" id="close-result-btn" style="padding:0.35rem 0.75rem;font-size:0.8rem">
+                        <i class="fas fa-xmark"></i> Close
+                    </button>
+                </div>
+
+                <div class="result-body">
+                    <div class="result-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+
+                        <!-- Left: Extracted Data Form -->
+                        <div>
+                            <h4 style="margin:0 0 1rem;font-size:0.9rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em">
+                                Extracted Data
+                            </h4>
+                            <form id="expense-form">
+                                <input type="hidden" id="receipt-id">
+
+                                <!-- Amount -->
+                                <div class="form-group" style="margin-bottom:0.9rem">
+                                    <label class="form-label" style="display:flex;align-items:center;gap:0.5rem">
+                                        Amount (₹)
+                                        <span class="conf-badge" id="conf-amount">—</span>
+                                    </label>
+                                    <input type="number" id="res-amount" class="form-control"
+                                        placeholder="0.00" step="0.01" min="0">
+                                </div>
+
+                                <!-- Date -->
+                                <div class="form-group" style="margin-bottom:0.9rem">
+                                    <label class="form-label" style="display:flex;align-items:center;gap:0.5rem">
+                                        Date
+                                        <span class="conf-badge" id="conf-date">—</span>
+                                    </label>
+                                    <input type="date" id="res-date" class="form-control">
+                                </div>
+
+                                <!-- Merchant -->
+                                <div class="form-group" style="margin-bottom:0.9rem">
+                                    <label class="form-label" style="display:flex;align-items:center;gap:0.5rem">
+                                        Merchant / Store
+                                        <span class="conf-badge" id="conf-merchant">—</span>
+                                    </label>
+                                    <input type="text" id="res-merchant" class="form-control"
+                                        placeholder="e.g. Amazon, Swiggy, Apollo">
+                                </div>
+
+                                <!-- Category -->
+                                <div class="form-group" style="margin-bottom:0.9rem">
+                                    <label class="form-label">Expense Category</label>
+                                    <select id="res-category" class="form-control">
+                                        <option value="">Loading categories...</option>
+                                    </select>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="form-group" style="margin-bottom:1.1rem">
+                                    <label class="form-label">Description (optional)</label>
+                                    <input type="text" id="res-desc" class="form-control"
+                                        placeholder="e.g. Grocery shopping, Monthly bill">
+                                </div>
+
+                                <button type="submit" class="btn btn-primary" id="save-expense-btn" style="width:100%">
+                                    <i class="fas fa-plus-circle"></i> Create Expense from Receipt
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Right: OCR raw text + image -->
+                        <div>
+                            <h4 style="margin:0 0 1rem;font-size:0.9rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em">
+                                OCR Raw Text
+                            </h4>
+                            <div class="ocr-raw" id="ocr-raw-text">No text extracted.</div>
+
+                            <div id="receipt-image-wrap" style="margin-top:1rem;display:none">
+                                <h4 style="margin:0 0 0.5rem;font-size:0.9rem;color:var(--text-secondary)">Receipt Image</h4>
+                                <img id="result-receipt-img" src="" alt="Receipt"
+                                     style="max-width:100%;max-height:260px;object-fit:contain;border-radius:10px;border:1px solid var(--border-subtle)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ Receipt History ════════════════════════════════════ -->
+            <div class="card card-glass">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-clock-rotate-left text-secondary"></i>
+                        <span>Processed Receipts</span>
+                    </div>
+                    <button class="btn btn-secondary" id="refresh-btn" style="font-size:.8rem;padding:.4rem .9rem">
+                        <i class="fas fa-rotate"></i> Refresh
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Extracted Amount</th>
+                                <th>Extracted Date</th>
+                                <th>Category</th>
+                                <th>Scanned On</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="receipts-tbody">
+                            <tr><td colspan="6" class="text-center text-muted" style="padding:2rem">Loading receipt history...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- OCR Processing Overlay -->
+<div class="ocr-overlay" id="ocr-overlay">
+    <i class="fas fa-gear ocr-spinner"></i>
+    <p>🔍 Scanning receipt with AI OCR...</p>
+    <span class="ocr-step" id="ocr-step-text">Preprocessing image...</span>
+</div>
+
+<!-- Image Preview Modal -->
+<div class="img-modal" id="img-modal">
+    <button class="img-modal-close" id="modal-close-btn"><i class="fas fa-xmark"></i></button>
+    <img id="modal-img" src="" alt="Receipt preview">
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/api.js"></script>
+<script>
+;(function ReceiptApp() {
+    'use strict';
+
+    // ── Auth ────────────────────────────────────────────────────────
+    if (typeof Auth !== 'undefined') Auth.protectPage();
+    const user = typeof Auth !== 'undefined' ? Auth.getUser() : null;
+    if (user) {
+        const n = document.getElementById('sidebar-user-name');
+        const a = document.getElementById('sidebar-avatar');
+        if (n) n.textContent = user.name || 'Account';
+        if (a) a.textContent = (user.name || 'U')[0].toUpperCase();
+    }
+    document.getElementById('logout-btn').addEventListener('click', e => { e.preventDefault(); Auth.logout(); });
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => sidebar.classList.toggle('open'));
+
+    // ── DOM ─────────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const dropZone       = $('drop-zone');
+    const fileInput      = $('file-input');
+    const filePreview    = $('file-preview');
+    const fileThumb      = $('file-thumb');
+    const fileName       = $('file-name');
+    const fileSize       = $('file-size');
+    const clearBtn       = $('clear-file-btn');
+    const uploadBtn      = $('upload-btn');
+    const ocrOverlay     = $('ocr-overlay');
+    const ocrStepText    = $('ocr-step-text');
+    const resultPanel    = $('result-panel');
+    const closeResultBtn = $('close-result-btn');
+    const expenseForm    = $('expense-form');
+    const alertEl        = $('global-alert');
+    const imgModal       = $('img-modal');
+    const modalImg       = $('modal-img');
+    const categorySelect = $('res-category');
+
+    let selectedFile = null;
+
+    // ── Helpers ─────────────────────────────────────────────────────
+    const fmt = n => new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR' }).format(n || 0);
+
+    const showAlert = (msg, isErr = false) => {
+        alertEl.textContent = msg;
+        alertEl.className = 'alert ' + (isErr ? 'alert-danger' : 'alert-success');
+        alertEl.classList.remove('hidden');
+        clearTimeout(alertEl._t);
+        alertEl._t = setTimeout(() => alertEl.classList.add('hidden'), 6000);
+    };
+
+    const setConf = (elId, conf) => {
+        const el = $(elId);
+        if (!el) return;
+        const map = {
+            extracted:        ['conf-extracted', 'Extracted ✓'],
+            defaulted_today:  ['conf-default',   'Defaulted to today'],
+            not_found:        ['conf-missing',   'Not found'],
+        };
+        const [cls, label] = map[conf] || ['conf-default', conf];
+        el.textContent = label;
+        el.className = 'conf-badge ' + cls;
+    };
+
+    // ── File Selection ───────────────────────────────────────────────
+    function onFileSelected(file) {
+        if (!file) return;
+        const validTypes = ['image/jpeg','image/jpg','image/png','image/webp'];
+        if (!validTypes.includes(file.type)) {
+            showAlert('Invalid file type. Please upload JPG, PNG, or WEBP.', true);
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showAlert('File too large — maximum 5 MB.', true);
+            return;
+        }
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = e => {
+            fileThumb.src = e.target.result;
+            fileName.textContent = file.name;
+            fileSize.textContent = (file.size / 1024).toFixed(1) + ' KB';
+            filePreview.style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Drop zone events
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) onFileSelected(fileInput.files[0]); });
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault(); dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files[0]) onFileSelected(e.dataTransfer.files[0]);
+    });
+
+    clearBtn.addEventListener('click', () => {
+        selectedFile = null;
+        fileInput.value = '';
+        filePreview.style.display = 'none';
+        fileThumb.src = '';
+    });
+
+    // ── OCR Upload ───────────────────────────────────────────────────
+    const ocrSteps = [
+        'Preprocessing image (grayscale, contrast, sharpen)...',
+        'Running Tesseract OCR engine...',
+        'Extracting amount, date, merchant...',
+        'Saving to database...',
+    ];
+
+    uploadBtn.addEventListener('click', async () => {
+        if (!selectedFile) { showAlert('Please select a receipt image first.', true); return; }
+
+        // Show overlay with animated steps
+        ocrOverlay.classList.add('show');
+        let stepIdx = 0;
+        ocrStepText.textContent = ocrSteps[0];
+        const stepTimer = setInterval(() => {
+            stepIdx = (stepIdx + 1) % ocrSteps.length;
+            ocrStepText.textContent = ocrSteps[stepIdx];
+        }, 2500);
+
+        try {
+            const token = typeof Auth !== 'undefined' ? Auth.getToken() : '';
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            const res = await fetch('/api/receipts/upload', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const json = await res.json();
+
+            if (res.ok && json.success) {
+                showResultPanel(json.data);
+                loadHistory();
+                clearBtn.click(); // reset file selection
+                showAlert('✅ Receipt scanned successfully!');
+            } else {
+                showAlert(json.message || 'OCR processing failed. Try a clearer image.', true);
+            }
+        } catch (err) {
+            showAlert('Network error. Make sure the server is running.', true);
+        } finally {
+            clearInterval(stepTimer);
+            ocrOverlay.classList.remove('show');
+        }
+    });
+
+    // ── Show Result Panel ────────────────────────────────────────────
+    function showResultPanel(data) {
+        $('receipt-id').value       = data.receiptId;
+        $('res-amount').value       = data.amount || '';
+        $('res-date').value         = data.date || new Date().toISOString().split('T')[0];
+        $('res-merchant').value     = data.merchant || '';
+        $('ocr-raw-text').textContent = data.ocrText || '(No text could be extracted from this image)';
+
+        // Confidence badges
+        const conf = data.confidence || {};
+        setConf('conf-amount',   conf.amount   || (data.amount ? 'extracted' : 'not_found'));
+        setConf('conf-date',     conf.date     || 'not_found');
+        setConf('conf-merchant', conf.merchant || (data.merchant ? 'extracted' : 'not_found'));
+
+        // Show receipt image
+        if (data.imageUrl) {
+            const imgWrap = $('receipt-image-wrap');
+            const img     = $('result-receipt-img');
+            img.src = data.imageUrl;
+            imgWrap.style.display = 'block';
+        }
+
+        // Auto-select suggested category
+        const suggested = data.suggestedCategory;
+        if (suggested) {
+            const opts = Array.from(categorySelect.options);
+            const match = opts.find(o => o.dataset.name === suggested || o.text === suggested);
+            if (match) match.selected = true;
+        }
+
+        resultPanel.classList.add('show');
+        resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    closeResultBtn.addEventListener('click', () => resultPanel.classList.remove('show'));
+
+    // ── Expense Form Submit ───────────────────────────────────────────
+    expenseForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const payload = {
+            receiptId:  $('receipt-id').value,
+            amount:     parseFloat($('res-amount').value),
+            date:       $('res-date').value,
+            categoryId: categorySelect.value,
+            description: ($('res-merchant').value || '') + ' — ' + ($('res-desc').value || 'Receipt scan')
+        };
+
+        if (!payload.receiptId || !payload.categoryId || !payload.amount || !payload.date) {
+            showAlert('Please fill in Amount, Date, and Category.', true);
+            return;
+        }
+
+        const btn = $('save-expense-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        try {
+            const res = await Api.post('/receipts/create-expense', payload);
+            if (res.ok && res.data?.success) {
+                showAlert('✅ Expense created from receipt!');
+                resultPanel.classList.remove('show');
+            } else {
+                showAlert(res.data?.message || 'Failed to create expense.', true);
+            }
+        } catch {
+            showAlert('Network error.', true);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-plus-circle"></i> Create Expense from Receipt';
+        }
+    });
+
+    // ── Load Categories ──────────────────────────────────────────────
+    async function loadCategories() {
+        try {
+            const res = await Api.get('/categories');
+            if (res.ok && res.data?.success) {
+                const cats = (res.data.data || []).filter(c => c.category_type === 'Expense');
+                categorySelect.innerHTML = '<option value="">— Select Category —</option>' +
+                    cats.map(c => `<option value="${c.category_id}" data-name="${c.category_name}">${c.category_name}</option>`).join('');
+            }
+        } catch {}
+    }
+
+    // ── Load History ─────────────────────────────────────────────────
+    async function loadHistory() {
+        const tbody = $('receipts-tbody');
+        try {
+            const res = await Api.get('/receipts');
+            if (res.ok && res.data?.success) {
+                const list = res.data.data || [];
+
+                // Update stats
+                if (list.length > 0) {
+                    $('ocr-stats').style.display = 'grid';
+                    $('stat-total').textContent = list.length;
+                    const amounts = list.map(r => {
+                        // Try to extract amount from stored OCR text
+                        try {
+                            const match = r.ocr_text?.match(/₹?\s*(\d[\d,]*(?:\.\d{1,2})?)/);
+                            return match ? parseFloat(match[1].replace(/,/g,'')) : 0;
+                        } catch { return 0; }
+                    }).filter(a => a > 0);
+                    const totalAmt = amounts.reduce((a,b) => a+b, 0);
+                    $('stat-amount').textContent = fmt(totalAmt);
+                    const successRate = Math.round((amounts.length / list.length) * 100);
+                    $('stat-success-rate').textContent = successRate + '%';
+                }
+
+                if (!list.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:2rem">No receipts scanned yet — upload one above!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = list.map(r => {
+                    // Parse amount from ocr_text for display
+                    let displayAmt = '—';
+                    let displayDate = '—';
+                    let displayCat = '—';
+                    try {
+                        const amtMatch = r.ocr_text?.match(/(?:₹|rs\.?|inr)\s*([\d,]+(?:\.\d{1,2})?)/i);
+                        if (amtMatch) displayAmt = fmt(parseFloat(amtMatch[1].replace(/,/g,'')));
+                    } catch {}
+
+                    return `<tr>
+                        <td>
+                            <img src="${r.image_url}" class="receipt-thumb"
+                                 onclick="window.__previewReceipt('${r.image_url}')"
+                                 alt="Receipt" onerror="this.src='/assets/placeholder-receipt.png'">
+                        </td>
+                        <td style="font-weight:700">${displayAmt}</td>
+                        <td>${displayDate}</td>
+                        <td>${displayCat}</td>
+                        <td style="font-size:.8rem">${new Date(r.created_at).toLocaleString('en-IN')}</td>
+                        <td>
+                            <button class="btn btn-icon btn-secondary" style="color:#ef4444"
+                                onclick="window.__deleteReceipt('${r.receipt_id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+        } catch {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load receipt history.</td></tr>';
+        }
+    }
+
+    // Expose globally
+    window.__previewReceipt = url => {
+        modalImg.src = url;
+        imgModal.classList.add('show');
+    };
+    window.__deleteReceipt = async id => {
+        if (!confirm('Delete this receipt permanently?')) return;
+        try {
+            const res = await Api.delete(`/receipts/${id}`);
+            if (res.data?.success) { showAlert('Receipt deleted.'); loadHistory(); }
+            else showAlert('Delete failed.', true);
+        } catch { showAlert('Network error.', true); }
+    };
+
+    // Modal close
+    $('modal-close-btn').addEventListener('click', () => imgModal.classList.remove('show'));
+    imgModal.addEventListener('click', e => { if (e.target === imgModal) imgModal.classList.remove('show'); });
+    $('refresh-btn').addEventListener('click', loadHistory);
+
+    // ── Init ─────────────────────────────────────────────────────────
+    loadCategories();
+    loadHistory();
+})();
+</script>
+</body>
+</html>

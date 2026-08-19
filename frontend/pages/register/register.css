@@ -1,0 +1,197 @@
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-color: var(--bg-dark);
+}
+
+.auth-card {
+    background-color: var(--bg-card);
+    width: 100%;
+    max-width: 480px;
+    padding: 2.5rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.auth-header h2 {
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper .icon {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-muted);
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.input-wrapper input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+.toggle-password {
+    position: absolute;
+    right: 1rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.toggle-password:hover {
+    color: var(--text-main);
+}
+
+.full-width {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+/* Password Strength */
+.password-strength-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.strength-bar-wrapper {
+    flex-grow: 1;
+    height: 4px;
+    background-color: var(--border-color);
+    border-radius: 2px;
+    margin-right: 1rem;
+    overflow: hidden;
+}
+
+.strength-bar {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s ease;
+}
+
+.strength-text {
+    font-weight: 600;
+}
+
+/* Rules List */
+.password-rules {
+    list-style: none;
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.password-rules li i {
+    margin-right: 0.25rem;
+}
+
+.password-rules li.valid {
+    color: var(--success);
+}
+.password-rules li.valid i::before {
+    content: "\f00c"; /* fa-check */
+}
+
+/* Error states */
+.error-text {
+    display: block;
+    color: var(--danger);
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    min-height: 1rem;
+}
+
+.input-wrapper input.error {
+    border-color: var(--danger);
+}
+
+.input-wrapper input.success {
+    border-color: var(--success);
+}
+
+/* Alerts */
+.alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+.alert.hidden {
+    display: none;
+}
+.alert-success {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+.alert-error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+}
+
+/* Footer Links */
+.auth-footer {
+    margin-top: 2rem;
+    font-size: 0.875rem;
+}
+.link {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+.link:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+.link-muted {
+    color: var(--text-muted);
+    margin-top: 1rem;
+    display: inline-block;
+}
+.link-muted:hover {
+    color: var(--text-main);
+}
