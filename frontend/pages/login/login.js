@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 // Handle API Errors
-                if (data.errors && data.errors.length > 0) {
+                if (data?.errors && data.errors.length > 0) {
                     // Map field errors to inputs
                     data.errors.forEach(err => {
                         const errorEl = document.getElementById(`${err.field}-error`);
@@ -103,13 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 // Show general alert if message exists
-                if (data.message) {
-                    alertBox.textContent = data.message;
-                    alertBox.className = 'alert alert-error';
-                }
+                const msg = data?.message || apiRes?.message || 'Login failed. Please check your credentials.';
+                alertBox.textContent = msg;
+                alertBox.className = 'alert alert-error';
             }
         } catch (error) {
-            alertBox.textContent = 'Cannot connect to the server. Please try again later.';
+            console.error('Login error:', error);
+            alertBox.textContent = error.message || 'Cannot connect to the server. Please try again later.';
             alertBox.className = 'alert alert-error';
         } finally {
             // Revert loading state
