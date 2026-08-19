@@ -1,0 +1,96 @@
+/* Dashboard Specific CSS */
+
+.dash-intelligence-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.ai-widget-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.ai-widget-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    background: var(--bg-surface-elevated);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+}
+
+.ai-widget-item i {
+    margin-top: 2px;
+    font-size: 1.1rem;
+}
+
+.ai-widget-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.ai-widget-text strong {
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 0.15rem;
+}
+
+/* Budget Widget */
+.budget-widget-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-top: 0.5rem;
+}
+
+.budget-progress-track {
+    height: 12px;
+    background: var(--bg-surface-elevated);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.budget-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--secondary), var(--warning));
+    border-radius: 6px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.budget-metrics-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.metric-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.budget-metrics-row strong {
+    font-size: 1.15rem;
+    color: var(--text-primary);
+}
+
+/* Charts */
+.dash-charts-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 960px) {
+    .dash-intelligence-grid {
+        grid-template-columns: 1fr;
+    }
+    .dash-charts-grid {
+        grid-template-columns: 1fr;
+    }
+}

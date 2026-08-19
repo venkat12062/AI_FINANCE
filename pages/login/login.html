@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - AI Finance Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/pages/register/register.css">
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header text-center">
+                <h2>Welcome Back</h2>
+                <p>Login to your AI Finance Manager account.</p>
+            </div>
+            
+            <div id="alert-box" class="alert hidden"></div>
+            
+            <form id="login-form" novalidate>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope icon"></i>
+                        <input type="email" id="email" name="email" placeholder="john@example.com" autocomplete="email" required>
+                    </div>
+                    <small class="error-text" id="email-error"></small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock icon"></i>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+                        <i class="fas fa-eye-slash toggle-password" id="toggle-password"></i>
+                    </div>
+                    <small class="error-text" id="password-error"></small>
+                </div>
+
+                <div class="form-group remember-me-group">
+                    <label class="remember-me-label">
+                        <input type="checkbox" id="remember-me">
+                        <span>Remember Me</span>
+                    </label>
+                </div>
+                
+                <button type="submit" id="submit-btn" class="btn btn-primary full-width">
+                    <span id="btn-text">Login</span>
+                    <i class="fas fa-spinner fa-spin hidden" id="btn-spinner"></i>
+                </button>
+            </form>
+            
+            <div class="auth-footer text-center">
+                <p>Don't have an account? <a href="/pages/register/register.html" class="link">Register here</a></p>
+                <p><a href="/index.html" class="link-muted"><i class="fas fa-arrow-left"></i> Back to Home</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/auth.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="login.js"></script>
+</body>
+</html>

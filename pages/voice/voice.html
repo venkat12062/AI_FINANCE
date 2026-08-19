@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Assistant — AI Finance Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+/* ═══════════════════════════════════════════
+   VOICE PAGE — DEDICATED STYLES
+═══════════════════════════════════════════ */
+
+/* Permission Banner */
+.perm-banner {
+    display: none; gap: 1rem; align-items: center; flex-wrap: wrap;
+    padding: 1rem 1.4rem;
+    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(14,165,233,0.08));
+    border: 1px solid rgba(99,102,241,0.4);
+    border-radius: 14px; margin-bottom: 1.5rem;
+}
+.perm-banner.visible { display: flex; }
+.perm-text { flex: 1; min-width: 200px; }
+.perm-text strong { display: block; margin-bottom: 0.2rem; }
+.perm-text p { margin: 0; font-size: 0.85rem; color: var(--text-secondary, #94a3b8); }
+
+/* State Cards Row */
+.state-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem; margin-bottom: 1.5rem;
+}
+.state-pill {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1rem; border-radius: 99px;
+    font-size: 0.8rem; font-weight: 700;
+    border: 1px solid var(--border-subtle, rgba(255,255,255,0.1));
+    background: var(--bg-surface, #1e293b); color: var(--text-muted, #64748b);
+    cursor: default; transition: all 0.2s;
+}
+.state-pill.active { color: #fff; border-color: transparent; }
+.state-pill.idle.active    { background: #475569; }
+.state-pill.recording.active { background: #ef4444; animation: pulse-red 1.5s infinite; }
+.state-pill.processing.active { background: #f59e0b; }
+.state-pill.success.active { background: #10b981; }
+.state-pill.error.active   { background: #ef4444; }
+@keyframes pulse-red { 0%,100%{ box-shadow:0 0 0 0 rgba(239,68,68,.5) } 50%{ box-shadow:0 0 0 8px rgba(239,68,68,0) } }
+
+/* Voice Stage */
+.voice-stage {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 2.5rem 2rem; text-align: center; position: relative;
+    overflow: hidden; transition: background 0.4s;
+}
+
+/* Recording Badge */
+.rec-badge {
+    position: absolute; top: 1rem; right: 1.2rem;
+    display: none; align-items: center; gap: 0.45rem;
+    padding: 0.25rem 0.8rem; border-radius: 99px;
+    background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.4);
+    color: #ef4444; font-size: 0.75rem; font-weight: 800;
+}
+.rec-badge.show { display: flex; }
+.rec-dot { width: 7px; height: 7px; border-radius: 50%; background: #ef4444; animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.1} }
+
+/* Avatar + Pulse rings */
+.avatar-wrap {
+    position: relative; width: 150px; height: 150px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.25rem;
+}
+.pulse-ring {
+    position: absolute; border-radius: 50%;
+    border: 2px solid #6366f1; opacity: 0; pointer-events: none;
+}
+.voice-avatar {
+    width: 92px; height: 92px; border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #0ea5e9);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.4rem; color: #fff; z-index: 2;
+    box-shadow: 0 0 30px rgba(99,102,241,.35);
+    transition: transform .3s, box-shadow .3s;
+}
+.voice-stage.is-recording .voice-avatar {
+    transform: scale(1.1); box-shadow: 0 0 55px rgba(239,68,68,.5);
+}
+.voice-stage.is-recording .pulse-ring:nth-child(1) { animation: vpulse 2s ease-out infinite; }
+.voice-stage.is-recording .pulse-ring:nth-child(2) { animation: vpulse 2s ease-out .65s infinite; }
+.voice-stage.is-recording .pulse-ring:nth-child(3) { animation: vpulse 2s ease-out 1.3s infinite; }
+@keyframes vpulse {
+    0%   { width:92px;  height:92px;  opacity:.7; }
+    100% { width:230px; height:230px; opacity:0; }
+}
+
+/* Status Text */
+.v-title { font-size: 1.2rem; font-weight: 700; margin-bottom: .35rem; transition: color .3s; }
+.v-sub   { font-size: .86rem; color: var(--text-muted); margin-bottom: 1.25rem; max-width: 480px; }
+
+/* Waveform */
+.waveform {
+    display: none; align-items: center; gap: 5px;
+    height: 52px; margin-bottom: 1.3rem;
+}
+.waveform.show { display: flex; }
+.waveform .bar {
+    width: 6px; min-height: 4px; background: linear-gradient(180deg,#6366f1,#0ea5e9);
+    border-radius: 3px; transform-origin: bottom;
+}
+/* CSS fallback animation while recording */
+.voice-stage.is-recording .bar { animation: wbar .9s ease-in-out infinite; }
+.voice-stage.is-recording .bar:nth-child(1)  { animation-delay: 0s; }
+.voice-stage.is-recording .bar:nth-child(2)  { animation-delay: .1s; }
+.voice-stage.is-recording .bar:nth-child(3)  { animation-delay: .2s; }
+.voice-stage.is-recording .bar:nth-child(4)  { animation-delay: .3s; }
+.voice-stage.is-recording .bar:nth-child(5)  { animation-delay: .4s; }
+.voice-stage.is-recording .bar:nth-child(6)  { animation-delay: .5s; }
+.voice-stage.is-recording .bar:nth-child(7)  { animation-delay: .4s; }
+.voice-stage.is-recording .bar:nth-child(8)  { animation-delay: .3s; }
+.voice-stage.is-recording .bar:nth-child(9)  { animation-delay: .2s; }
+.voice-stage.is-recording .bar:nth-child(10) { animation-delay: .1s; }
+@keyframes wbar {
+    0%,100% { transform: scaleY(.2); }
+    50%      { transform: scaleY(1.6); }
+}
+
+/* Mic button */
+.mic-btn {
+    display: flex; align-items: center; gap: .65rem;
+    padding: .9rem 2.8rem; font-size: 1.05rem; font-weight: 700;
+    border-radius: 99px; cursor: pointer; border: none;
+    background: linear-gradient(135deg,#6366f1,#0ea5e9);
+    color: #fff; box-shadow: 0 4px 22px rgba(99,102,241,.38);
+    transition: transform .2s, box-shadow .2s, background .3s;
+}
+.mic-btn:hover  { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,.5); }
+.mic-btn:active { transform: translateY(0); }
+.mic-btn.recording {
+    background: linear-gradient(135deg,#ef4444,#f97316);
+    box-shadow: 0 4px 22px rgba(239,68,68,.45);
+}
+
+/* Transcript box */
+.transcript-box {
+    width: 100%; max-width: 700px; margin-top: 1.5rem;
+    background: var(--bg-surface-elevated, #1e293b);
+    border: 1px solid var(--border-subtle, rgba(255,255,255,.09));
+    border-radius: 14px; padding: 1.1rem 1.4rem; text-align: left;
+}
+.tx-header {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: .73rem; font-weight: 700;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: .07em;
+    margin-bottom: .7rem;
+}
+.tx-body { font-size: .95rem; min-height: 44px; line-height: 1.6; }
+
+/* Playback */
+.playback-wrap { display: none; width: 100%; max-width: 500px; margin-top: .9rem; }
+.playback-label {
+    font-size: .75rem; font-weight: 700;
+    color: var(--text-muted); margin-bottom: .3rem; display: block;
+}
+audio { width: 100%; border-radius: 10px; }
+
+/* Fallback input row */
+.input-row { display: flex; gap: .65rem; width: 100%; max-width: 700px; margin-top: 1rem; }
+.input-row input { flex: 1; }
+
+/* Chips grid */
+.chips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: .7rem;
+}
+.chip {
+    display: flex; align-items: center; gap: .65rem;
+    padding: .75rem 1rem;
+    background: var(--bg-surface-elevated, #1e293b);
+    border: 1px solid var(--border-subtle, rgba(255,255,255,.09));
+    border-radius: 12px; cursor: pointer;
+    color: var(--text-secondary, #cbd5e1);
+    font-size: .84rem; font-weight: 500; text-align: left;
+    transition: border-color .15s, background .15s, transform .15s;
+}
+.chip i { width: 18px; text-align: center; color: #6366f1; flex-shrink: 0; }
+.chip:hover {
+    border-color: #6366f1;
+    background: rgba(99,102,241,.1);
+    transform: translateY(-2px);
+}
+.chip.income i { color: #10b981; }
+
+/* Confirm card */
+.confirm-card {
+    margin-top: .9rem; padding: 1.1rem;
+    background: rgba(16,185,129,.1);
+    border: 1px solid rgba(16,185,129,.3);
+    border-radius: 12px;
+}
+.confirm-meta {
+    font-size: .84rem; display: flex;
+    gap: 1.5rem; flex-wrap: wrap; margin: .5rem 0 .75rem;
+    color: var(--text-secondary);
+}
+
+/* Error state */
+.error-card {
+    margin-top: .9rem; padding: 1rem 1.1rem;
+    background: rgba(239,68,68,.1);
+    border: 1px solid rgba(239,68,68,.3);
+    border-radius: 12px; font-size: .9rem;
+}
+
+/* History search */
+.history-controls {
+    display: flex; gap: .65rem; flex-wrap: wrap;
+    margin-bottom: 1rem; align-items: center;
+}
+.history-controls input { flex: 1; min-width: 180px; }
+
+/* No mic / browser error overlay */
+.no-support-banner {
+    display: none; padding: 1.1rem 1.4rem;
+    background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3);
+    border-radius: 14px; margin-bottom: 1.5rem;
+}
+.no-support-banner.visible { display: block; }
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+    .voice-stage { padding: 1.8rem 1rem; }
+    .mic-btn { padding: .8rem 2rem; font-size: .95rem; }
+    .input-row { flex-direction: column; }
+    .chips-grid { grid-template-columns: 1fr; }
+    .state-row { grid-template-columns: repeat(3,1fr); }
+}
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- ════ Sidebar ════════════════════════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="/pages/dashboard/dashboard.html" class="sidebar-logo">
+                <i class="fas fa-brain"></i><span>FinanceAI</span>
+            </a>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Core</div>
+            <a href="/pages/dashboard/dashboard.html"   class="nav-item"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+            <a href="/pages/income/income.html"         class="nav-item"><i class="fas fa-arrow-trend-up"></i><span>Income</span></a>
+            <a href="/pages/expenses/expenses.html"     class="nav-item"><i class="fas fa-arrow-trend-down"></i><span>Expenses</span></a>
+            <a href="/pages/budgets/budgets.html"       class="nav-item"><i class="fas fa-wallet"></i><span>Budgets</span></a>
+            <a href="/pages/categories/categories.html" class="nav-item"><i class="fas fa-tags"></i><span>Categories</span></a>
+            <div class="nav-section-title">Intelligence</div>
+            <a href="/pages/reports/reports.html"       class="nav-item"><i class="fas fa-chart-line"></i><span>Reports</span></a>
+            <a href="/pages/ai-insights/ai-insights.html" class="nav-item"><i class="fas fa-wand-magic-sparkles"></i><span>AI Insights</span></a>
+            <a href="/pages/receipts/receipts.html"     class="nav-item"><i class="fas fa-receipt"></i><span>Receipt OCR</span></a>
+            <a href="/pages/voice/voice.html"           class="nav-item active"><i class="fas fa-microphone"></i><span>Voice Assistant</span></a>
+            <div class="nav-section-title">Account</div>
+            <a href="/pages/notifications/notifications.html" class="nav-item"><i class="fas fa-bell"></i><span>Notifications</span></a>
+            <a href="/pages/settings/settings.html"     class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-profile-badge">
+                <div class="user-avatar" id="sidebar-avatar">A</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebar-user-name">User</div>
+                    <div class="user-role">AI Finance</div>
+                </div>
+                <a href="#" id="logout-btn" title="Logout" style="color:var(--text-muted)">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ════ Main ════════════════════════════════════════════════════ -->
+    <main class="main-wrapper">
+        <header class="top-header">
+            <div style="display:flex;align-items:center;gap:1rem">
+                <button class="mobile-nav-toggle" id="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+                <div class="header-search">
+                    <i class="fas fa-microphone"></i>
+                    <input type="text" placeholder="Voice Finance Assistant — ₹ INR">
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn" id="tts-btn" title="Toggle voice responses" style="color:var(--primary)">
+                    <i class="fas fa-volume-high" id="tts-icon"></i>
+                </button>
+                <a href="/pages/notifications/notifications.html" class="header-btn"><i class="fas fa-bell"></i></a>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <div class="page-header">
+                <div class="page-title-group">
+                    <h1>🎙️ Voice Finance Assistant</h1>
+                    <p>Say a command to log expenses, income, or query your finances in ₹ INR — or type it below.</p>
+                </div>
+            </div>
+
+            <!-- Global Alert -->
+            <div id="global-alert" class="alert hidden" style="margin-bottom:1.5rem;"></div>
+
+            <!-- Unsupported Browser Banner -->
+            <div class="no-support-banner" id="no-support-banner">
+                <strong><i class="fas fa-triangle-exclamation" style="color:#ef4444"></i> &nbsp;Browser Not Supported for Voice Recording</strong>
+                <p style="margin:.4rem 0 0;font-size:.86rem">
+                    Your browser does not support <code>MediaRecorder</code> or <code>SpeechRecognition</code>.
+                    Please use <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong> for full voice functionality.
+                    You can still use the <strong>text input</strong> and <strong>quick chips</strong> below.
+                </p>
+            </div>
+
+            <!-- Permission Banner -->
+            <div class="perm-banner" id="perm-banner">
+                <i class="fas fa-microphone-slash" style="font-size:1.6rem;color:#6366f1;flex-shrink:0"></i>
+                <div class="perm-text">
+                    <strong>Microphone Permission Required</strong>
+                    <p>Click the button to grant microphone access, then click Start Recording.</p>
+                </div>
+                <button class="btn btn-primary" id="grant-mic-btn">
+                    <i class="fas fa-unlock"></i> Grant Mic Access
+                </button>
+            </div>
+
+            <!-- State Pills -->
+            <div class="state-row">
+                <div class="state-pill idle active"       id="sp-idle">      <i class="fas fa-circle-dot"></i> Idle</div>
+                <div class="state-pill recording"         id="sp-recording">  <i class="fas fa-circle-dot fa-fade"></i> Recording</div>
+                <div class="state-pill processing"        id="sp-processing"> <i class="fas fa-spinner fa-spin"></i> Processing</div>
+                <div class="state-pill success"           id="sp-success">    <i class="fas fa-check-circle"></i> Success</div>
+                <div class="state-pill error"             id="sp-error">      <i class="fas fa-circle-exclamation"></i> Error</div>
+            </div>
+
+            <!-- ══ Voice Stage Card ════════════════════════════════ -->
+            <div class="card card-glass voice-stage mb-8" id="voice-stage">
+
+                <!-- REC badge -->
+                <div class="rec-badge" id="rec-badge">
+                    <span class="rec-dot"></span>
+                    <span id="rec-timer">00:00</span>
+                </div>
+
+                <!-- Avatar + rings -->
+                <div class="avatar-wrap">
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring"></div>
+                    <div class="voice-avatar">
+                        <i class="fas fa-microphone" id="avatar-icon"></i>
+                    </div>
+                </div>
+
+                <div class="v-title" id="v-title">Tap below to start recording</div>
+                <span class="v-sub">"I spent ₹500 on Food" &nbsp;·&nbsp; "What is my remaining budget?"</span>
+
+                <!-- Waveform bars -->
+                <div class="waveform" id="waveform">
+                    <div class="bar" style="height:10px"></div>
+                    <div class="bar" style="height:20px"></div>
+                    <div class="bar" style="height:32px"></div>
+                    <div class="bar" style="height:24px"></div>
+                    <div class="bar" style="height:40px"></div>
+                    <div class="bar" style="height:30px"></div>
+                    <div class="bar" style="height:18px"></div>
+                    <div class="bar" style="height:36px"></div>
+                    <div class="bar" style="height:26px"></div>
+                    <div class="bar" style="height:14px"></div>
+                </div>
+
+                <!-- Mic button -->
+                <button class="mic-btn" id="mic-btn">
+                    <i class="fas fa-microphone" id="mic-icon"></i>
+                    <span id="mic-label">Start Recording</span>
+                </button>
+
+                <!-- Audio playback -->
+                <div class="playback-wrap" id="playback-wrap">
+                    <span class="playback-label"><i class="fas fa-headphones"></i> Recorded audio:</span>
+                    <audio id="audio-player" controls></audio>
+                </div>
+
+                <!-- Transcript box -->
+                <div class="transcript-box">
+                    <div class="tx-header">
+                        <span><i class="fas fa-comments"></i>&nbsp; Transcript &amp; AI Response</span>
+                        <span id="status-badge" class="badge badge-primary">READY</span>
+                    </div>
+                    <div class="tx-body" id="tx-body">
+                        <span style="color:var(--text-muted)">
+                            <i>Say a command, click Start Recording, or use the chips below...</i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Text input fallback -->
+                <div class="input-row">
+                    <input type="text" id="text-input" class="form-control"
+                        placeholder="Type: 'I spent 500 on groceries' or 'What is my balance?'">
+                    <button class="btn btn-primary" id="send-btn">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </div>
+            </div>
+
+            <!-- ══ Quick Command Chips ════════════════════════════ -->
+            <div class="card card-glass mb-8">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-bolt text-primary"></i>
+                        <span>Quick Commands — Instant Execution</span>
+                    </div>
+                    <span class="badge badge-primary" style="font-size:.7rem">NLP</span>
+                </div>
+                <div class="chips-grid">
+                    <!-- Expense chips -->
+                    <button class="chip" data-cmd="I spent 500 on Food">
+                        <i class="fas fa-utensils"></i> "I spent ₹500 on Food"</button>
+                    <button class="chip" data-cmd="I spent 1200 on Travel">
+                        <i class="fas fa-plane"></i> "I spent ₹1,200 on Travel"</button>
+                    <button class="chip" data-cmd="I spent 2500 on Shopping">
+                        <i class="fas fa-bag-shopping"></i> "I spent ₹2,500 on Shopping"</button>
+                    <button class="chip" data-cmd="I spent 700 on Medical">
+                        <i class="fas fa-kit-medical"></i> "I spent ₹700 on Medical"</button>
+                    <button class="chip" data-cmd="I spent 300 on Entertainment">
+                        <i class="fas fa-film"></i> "I spent ₹300 on Entertainment"</button>
+                    <button class="chip" data-cmd="paid electricity bill 1500">
+                        <i class="fas fa-bolt"></i> "Paid electricity ₹1,500"</button>
+                    <!-- Income chips -->
+                    <button class="chip income" data-cmd="I received 25000 salary">
+                        <i class="fas fa-money-bill-wave"></i> "I received ₹25,000 salary"</button>
+                    <button class="chip income" data-cmd="I earned 5000 freelance">
+                        <i class="fas fa-laptop-code"></i> "I earned ₹5,000 freelance"</button>
+                    <button class="chip income" data-cmd="I received 10000 bonus">
+                        <i class="fas fa-gift"></i> "I received ₹10,000 bonus"</button>
+                    <!-- Query chips -->
+                    <button class="chip" data-cmd="What is my remaining budget?" style="border-color:rgba(14,165,233,.3)">
+                        <i class="fas fa-wallet" style="color:#0ea5e9"></i> "What is my remaining budget?"</button>
+                    <button class="chip" data-cmd="What is my balance?" style="border-color:rgba(14,165,233,.3)">
+                        <i class="fas fa-scale-balanced" style="color:#0ea5e9"></i> "What is my balance?"</button>
+                    <button class="chip" data-cmd="Show my top expenses" style="border-color:rgba(14,165,233,.3)">
+                        <i class="fas fa-arrow-up-wide-short" style="color:#0ea5e9"></i> "Show my top expenses"</button>
+                    <button class="chip" data-cmd="How much did I spend this month?" style="border-color:rgba(14,165,233,.3)">
+                        <i class="fas fa-calendar-days" style="color:#0ea5e9"></i> "How much did I spend this month?"</button>
+                    <button class="chip" data-cmd="Show my income" style="border-color:rgba(14,165,233,.3)">
+                        <i class="fas fa-chart-line" style="color:#0ea5e9"></i> "Show my income this month"</button>
+                </div>
+            </div>
+
+            <!-- ══ Voice History ══════════════════════════════════ -->
+            <div class="card card-glass">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-clock-rotate-left text-secondary"></i>
+                        <span>Voice Command History</span>
+                    </div>
+                    <button class="btn btn-secondary" id="refresh-history-btn" style="font-size:.8rem;padding:.4rem .9rem">
+                        <i class="fas fa-rotate"></i> Refresh
+                    </button>
+                </div>
+                <!-- Search + filter -->
+                <div class="history-controls">
+                    <input type="text" id="history-search" class="form-control"
+                        placeholder="Search history..." style="max-width:320px">
+                    <select id="history-type-filter" class="form-control" style="max-width:160px">
+                        <option value="">All Types</option>
+                        <option value="Expense">Expense</option>
+                        <option value="Income">Income</option>
+                        <option value="Command">Command / Query</option>
+                    </select>
+                    <span id="history-count" style="font-size:.8rem;color:var(--text-muted);margin-left:auto"></span>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Command</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-tbody">
+                            <tr><td colspan="6" class="text-center text-muted" style="padding:2rem">Loading history...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                <div id="history-pagination" style="display:flex;justify-content:center;gap:.5rem;margin-top:1rem"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ════ Scripts ══════════════════════════════════════════════════ -->
+<script src="/js/auth.js"></script>
+<script src="/js/api.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   VOICE FINANCE ASSISTANT — Complete Production JS
+   Handles: recording, STT, visualiser, NLP API, history, pagination,
+            search, memory-leak prevention, no duplicate listeners
+═══════════════════════════════════════════════════════════════════════ */
+;(function VoiceApp() {
+    'use strict';
+
+    // ── Auth guard ──────────────────────────────────────────────────
+    if (typeof Auth !== 'undefined') Auth.protectPage();
+    const user = typeof Auth !== 'undefined' ? Auth.getUser() : null;
+    if (user) {
+        const el = id => document.getElementById(id);
+        const n  = el('sidebar-user-name'), a = el('sidebar-avatar');
+        if (n) n.textContent = user.name || 'Account';
+        if (a) a.textContent = (user.name || 'U')[0].toUpperCase();
+    }
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) logoutBtn.addEventListener('click', e => { e.preventDefault(); Auth.logout(); });
+
+    const sidebar = document.getElementById('sidebar');
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    if (menuBtn) menuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+    // ── DOM refs ────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const stage      = document.getElementById('voice-stage');
+    const vTitle     = $('v-title');
+    const waveform   = $('waveform');
+    const recBadge   = $('rec-badge');
+    const recTimer   = $('rec-timer');
+    const micBtn     = $('mic-btn');
+    const micIcon    = $('mic-icon');
+    const micLabel   = $('mic-label');
+    const txBody     = $('tx-body');
+    const statusBadge = $('status-badge');
+    const textInput  = $('text-input');
+    const sendBtn    = $('send-btn');
+    const playWrap   = $('playback-wrap');
+    const audioPlayer = $('audio-player');
+    const permBanner = $('perm-banner');
+    const grantMicBtn = $('grant-mic-btn');
+    const noSupport  = $('no-support-banner');
+    const alertEl    = $('global-alert');
+    const ttsBtn     = $('tts-btn');
+    const ttsIcon    = $('tts-icon');
+
+    // State pills
+    const pills = {
+        idle:       $('sp-idle'),
+        recording:  $('sp-recording'),
+        processing: $('sp-processing'),
+        success:    $('sp-success'),
+        error:      $('sp-error'),
+    };
+
+    // ── State vars ──────────────────────────────────────────────────
+    let isRecording      = false;
+    let mediaRecorder    = null;
+    let audioChunks      = [];
+    let micStream        = null;
+    let audioCtx         = null;
+    let analyser         = null;
+    let animId           = null;
+    let recTickId        = null;
+    let recStart         = 0;
+    let recognition      = null;
+    let recogActive      = false;
+    let liveText         = '';
+    let ttsEnabled       = true;
+
+    // History state
+    let allHistory       = [];
+    let filteredHistory  = [];
+    const PAGE_SIZE      = 15;
+    let histPage         = 0;
+
+    // ── Feature detection ───────────────────────────────────────────
+    const hasMediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    const hasMediaRecorder = typeof MediaRecorder !== 'undefined';
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!hasMediaDevices || !hasMediaRecorder) {
+        noSupport.classList.add('visible');
+        micBtn.disabled = true;
+        micBtn.style.opacity = '.5';
+    }
+
+    // ── Helpers ─────────────────────────────────────────────────────
+    const fmt = n => new Intl.NumberFormat('en-IN', {
+        style: 'currency', currency: 'INR', maximumFractionDigits: 2
+    }).format(n || 0);
+
+    const showAlert = (msg, isErr = false) => {
+        if (!alertEl) return;
+        alertEl.textContent = msg;
+        alertEl.className = 'alert ' + (isErr ? 'alert-danger' : 'alert-success');
+        alertEl.classList.remove('hidden');
+        clearTimeout(alertEl._t);
+        alertEl._t = setTimeout(() => alertEl.classList.add('hidden'), 5000);
+    };
+
+    const setStatePill = (name) => {
+        Object.entries(pills).forEach(([k, el]) => el.classList.toggle('active', k === name));
+    };
+
+    const setBadge = (text, cls = 'badge-primary') => {
+        statusBadge.textContent = text;
+        statusBadge.className = 'badge ' + cls;
+    };
+
+    const setTitle = (t) => { if (vTitle) vTitle.textContent = t; };
+    const setTx = (html) => { if (txBody) txBody.innerHTML = html; };
+
+    // ── TTS ─────────────────────────────────────────────────────────
+    ttsBtn.addEventListener('click', () => {
+        ttsEnabled = !ttsEnabled;
+        ttsIcon.className = ttsEnabled ? 'fas fa-volume-high' : 'fas fa-volume-xmark';
+        ttsBtn.style.color = ttsEnabled ? 'var(--primary)' : 'var(--text-muted)';
+        showAlert(ttsEnabled ? 'Voice responses ON' : 'Voice responses OFF');
+    });
+
+    const speak = (text) => {
+        if (!ttsEnabled || !window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text.replace(/[₹✅❌*]/g, ''));
+        u.rate = 1; u.pitch = 1;
+        window.speechSynthesis.speak(u);
+    };
+
+    // ── Permission check ────────────────────────────────────────────
+    if (navigator.permissions) {
+        navigator.permissions.query({ name: 'microphone' }).then(s => {
+            if (s.state === 'denied') permBanner.classList.add('visible');
+            s.onchange = () => {
+                if (s.state === 'granted') permBanner.classList.remove('visible');
+                else if (s.state === 'denied') permBanner.classList.add('visible');
+            };
+        }).catch(() => {});
+    }
+
+    grantMicBtn.addEventListener('click', async () => {
+        try {
+            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+            s.getTracks().forEach(t => t.stop());
+            permBanner.classList.remove('visible');
+            showAlert('✅ Microphone access granted! Click Start Recording.');
+        } catch {
+            showAlert('Permission still blocked. Click the 🔒 lock icon in browser address bar → Microphone → Allow.', true);
+        }
+    });
+
+    // ── Build SpeechRecognition ─────────────────────────────────────
+    // Returns a fresh instance — called each recording session to avoid
+    // "recognition already started" errors (memory-leak prevention)
+    function buildRecognition() {
+        if (!SpeechRec) return null;
+        const r = new SpeechRec();
+        r.continuous     = true;   // keep going until we stop it
+        r.interimResults = true;
+        r.lang           = 'en-US'; // widest browser support
+        r.maxAlternatives = 1;
+
+        r.onresult = evt => {
+            let final = '', interim = '';
+            for (let i = evt.resultIndex; i < evt.results.length; i++) {
+                const t = evt.results[i][0].transcript;
+                evt.results[i].isFinal ? (final += t) : (interim += t);
+            }
+            if (final) liveText += (liveText ? ' ' : '') + final.trim();
+            const display = (liveText + (interim ? ' ' + interim : '')).trim();
+            if (display) {
+                setTx(`<span style="color:var(--text-primary)">
+                    <i class="fas fa-microphone text-primary"></i>&nbsp;"${display}"
+                </span>`);
+            }
+        };
+
+        r.onerror = evt => {
+            recogActive = false;
+            if (['not-allowed', 'service-not-allowed'].includes(evt.error)) {
+                permBanner.classList.add('visible');
+                showAlert('Microphone permission denied — click "Grant Mic Access".', true);
+            }
+            // 'no-speech', 'audio-capture', 'network' — non-fatal, auto-restart below
+        };
+
+        r.onend = () => {
+            recogActive = false;
+            // Auto-restart while still in recording session
+            if (isRecording && recognition === r) {
+                try { r.start(); recogActive = true; } catch {}
+            }
+        };
+
+        return r;
+    }
+
+    // ── Waveform visualiser ─────────────────────────────────────────
+    function startVisualiser(stream) {
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const src = audioCtx.createMediaStreamSource(stream);
+            analyser  = audioCtx.createAnalyser();
+            analyser.fftSize = 32;
+            src.connect(analyser);
+            const data = new Uint8Array(analyser.frequencyBinCount);
+            const bars = waveform.querySelectorAll('.bar');
+            (function frame() {
+                if (!isRecording) return;
+                analyser.getByteFrequencyData(data);
+                bars.forEach((b, i) => {
+                    const v = data[i % data.length] || 0;
+                    b.style.transform = `scaleY(${Math.max(0.15, (v / 128) * 2)})`;
+                });
+                animId = requestAnimationFrame(frame);
+            })();
+        } catch { /* cosmetic — safe to skip */ }
+    }
+
+    // ── Cleanup ─────────────────────────────────────────────────────
+    function teardown() {
+        isRecording = false;
+        if (recTickId)  { clearInterval(recTickId);  recTickId = null; }
+        if (animId)     { cancelAnimationFrame(animId); animId = null; }
+
+        // Stop recognition BEFORE stream — prevents 'audio-capture' error
+        if (recognition) {
+            try { recognition.stop(); } catch {}
+            recognition = null; recogActive = false;
+        }
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            try { mediaRecorder.stop(); } catch {}
+        }
+        if (micStream) {
+            micStream.getTracks().forEach(t => t.stop()); micStream = null;
+        }
+        if (audioCtx) {
+            try { audioCtx.close(); } catch {}; audioCtx = null;
+        }
+    }
+
+    // ── UI reset to idle ────────────────────────────────────────────
+    function resetUI() {
+        stage.classList.remove('is-recording');
+        waveform.classList.remove('show');
+        recBadge.classList.remove('show');
+        micBtn.classList.remove('recording');
+        micIcon.className = 'fas fa-microphone';
+        micLabel.textContent = 'Start Recording';
+        setTitle('Tap below to start recording');
+        setBadge('READY', 'badge-primary');
+        setStatePill('idle');
+    }
+
+    // ── START ───────────────────────────────────────────────────────
+    async function startRecording() {
+        if (isRecording) return; // prevent duplicate sessions
+
+        liveText    = '';
+        audioChunks = [];
+
+        // 1. Open mic
+        try {
+            micStream = await navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 }
+            });
+        } catch (err) {
+            permBanner.classList.add('visible');
+            showAlert('Microphone access denied. Please click "Grant Mic Access" first.', true);
+            setStatePill('error');
+            setBadge('ERROR', 'badge-danger');
+            return;
+        }
+
+        // 2. MediaRecorder
+        const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/ogg'].find(m => {
+            try { return MediaRecorder.isTypeSupported(m); } catch { return false; }
+        }) || '';
+
+        try {
+            mediaRecorder = mimeType
+                ? new MediaRecorder(micStream, { mimeType })
+                : new MediaRecorder(micStream);
+        } catch {
+            mediaRecorder = new MediaRecorder(micStream);
+        }
+
+        mediaRecorder.ondataavailable = e => {
+            if (e.data && e.data.size > 0) audioChunks.push(e.data);
+        };
+        mediaRecorder.onstop = () => {
+            if (audioChunks.length) {
+                const blob = new Blob(audioChunks, { type: mimeType || 'audio/webm' });
+                audioPlayer.src = URL.createObjectURL(blob);
+                playWrap.style.display = 'block';
+            }
+        };
+        mediaRecorder.start(250);
+
+        // 3. Visualiser
+        startVisualiser(micStream);
+
+        // 4. SpeechRecognition (fresh instance — prevents "already started" error)
+        recognition = buildRecognition();
+        if (recognition) {
+            try { recognition.start(); recogActive = true; } catch {}
+        }
+
+        // 5. Update UI
+        isRecording = true;
+        stage.classList.add('is-recording');
+        waveform.classList.add('show');
+        recBadge.classList.add('show');
+        micBtn.classList.add('recording');
+        micIcon.className = 'fas fa-stop';
+        micLabel.textContent = 'Stop Recording';
+        setTitle('🔴 Recording… Speak your command!');
+        setBadge('REC', 'badge-danger');
+        setStatePill('recording');
+        setTx(`<span style="color:var(--text-muted)">
+            <i class="fas fa-circle-dot" style="color:#ef4444;animation:blink 1s infinite"></i>&nbsp;
+            <em>Listening to your voice… Speak now!</em>
+        </span>`);
+
+        // 6. Timer
+        recStart = Date.now();
+        recTickId = setInterval(() => {
+            const s = Math.floor((Date.now() - recStart) / 1000);
+            recTimer.textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+        }, 1000);
+    }
+
+    // ── STOP ────────────────────────────────────────────────────────
+    function stopRecording() {
+        if (!isRecording) return;
+        teardown();
+        resetUI();
+
+        const heard = liveText.trim();
+        if (heard.length >= 2) {
+            runCommand(heard);
+        } else {
+            setTx(`<div style="padding:.75rem;background:var(--bg-surface-elevated);border-radius:10px">
+                <p style="margin:0 0 .5rem;font-weight:700">
+                    <i class="fas fa-check-circle" style="color:#10b981"></i>&nbsp; Audio recorded!
+                </p>
+                <p style="margin:0 0 .75rem;font-size:.84rem;color:var(--text-secondary)">
+                    Speech was not transcribed. Check that your microphone is working and try again.
+                    Or tap a quick command chip:
+                </p>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                    ${['I spent 500 on Food','I spent 1200 on Travel','What is my remaining budget?'].map(c =>
+                        `<button class="btn btn-secondary" style="font-size:.8rem;padding:.3rem .7rem"
+                            onclick="window.__vc('${c}')">${c}</button>`
+                    ).join('')}
+                </div>
+            </div>`);
+        }
+    }
+
+    // ── Mic button ──────────────────────────────────────────────────
+    micBtn.addEventListener('click', () => {
+        if (isRecording) stopRecording();
+        else startRecording();
+    });
+
+    // ── Run NLP command ─────────────────────────────────────────────
+    async function runCommand(text) {
+        setTitle('⏳ Processing your command…');
+        setBadge('AI…', 'badge-warning');
+        setStatePill('processing');
+        setTx(`<span><i class="fas fa-microphone text-primary"></i>&nbsp;"${text}"</span>
+               <br><br><i class="fas fa-spinner fa-spin"></i>&nbsp; Sending to AI...`);
+
+        try {
+            const res = await Api.post('/voice/create-transaction', { voiceText: text });
+
+            if ((res.ok || res.status === 200 || res.status === 201) && res.data?.success) {
+                const d      = res.data.data;
+                const answer = d?.answer || res.data.message || 'Done!';
+                const isTx   = d?.type === 'transaction_created';
+                const txData = d?.data;
+
+                let card = '';
+                if (isTx && txData) {
+                    const isInc = txData.type === 'Income';
+                    card = `<div class="confirm-card">
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <span class="badge ${isInc ? 'badge-success' : 'badge-danger'}">
+                                <i class="fas ${isInc ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down'}"></i>
+                                &nbsp;${txData.type} Added
+                            </span>
+                            <strong style="font-size:1.2rem">${fmt(txData.amount)}</strong>
+                        </div>
+                        <div class="confirm-meta">
+                            <span><i class="fas fa-tag" style="color:#6366f1"></i>&nbsp;<strong>Category:</strong> ${txData.category}</span>
+                            <span><i class="fas fa-calendar" style="color:#0ea5e9"></i>&nbsp;<strong>Date:</strong> ${txData.date}</span>
+                        </div>
+                        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                            <a href="/pages/${isInc ? 'income/income' : 'expenses/expenses'}.html"
+                               class="btn btn-secondary" style="font-size:.78rem;padding:.35rem .8rem">
+                               <i class="fas fa-list"></i> View in ${txData.type}
+                            </a>
+                            <a href="/pages/dashboard/dashboard.html"
+                               class="btn btn-secondary" style="font-size:.78rem;padding:.35rem .8rem">
+                               <i class="fas fa-chart-pie"></i> Dashboard
+                            </a>
+                        </div>
+                    </div>`;
+                }
+
+                setTx(`<div style="margin-bottom:.5rem">
+                           <i class="fas fa-microphone text-primary"></i>&nbsp;"${text}"
+                       </div>
+                       <div style="font-weight:700;color:var(--text-primary);font-size:1.02rem">
+                           <i class="fas fa-robot" style="color:#6366f1"></i>&nbsp;${answer}
+                       </div>${card}`);
+                setBadge('SUCCESS', 'badge-success');
+                setStatePill('success');
+                setTitle('Command executed!');
+                speak(answer);
+                showAlert(answer);
+                loadHistory();
+
+                // Reset state pill to idle after 3s
+                setTimeout(() => { setStatePill('idle'); setTitle('Tap below to start recording'); }, 3000);
+            } else {
+                const msg = res.data?.message || 'Could not process command.';
+                setTx(`<div><i class="fas fa-microphone text-muted"></i>&nbsp;"${text}"</div>
+                    <div class="error-card">
+                        <i class="fas fa-circle-exclamation" style="color:#ef4444"></i>&nbsp;${msg}
+                    </div>`);
+                setBadge('ERROR', 'badge-danger');
+                setStatePill('error');
+                setTitle('Command not understood');
+                showAlert(msg, true);
+                setTimeout(() => { setStatePill('idle'); setTitle('Tap below to start recording'); }, 3000);
+            }
+        } catch (err) {
+            setTx(`<div class="error-card">
+                <i class="fas fa-wifi" style="color:#ef4444"></i>&nbsp;
+                <strong>Network error.</strong> Make sure the server is running at localhost:5000.
+            </div>`);
+            setBadge('ERROR', 'badge-danger');
+            setStatePill('error');
+            showAlert('Network error — server may be offline. Try again.', true);
+            setTimeout(() => { setStatePill('idle'); setTitle('Tap below to start recording'); }, 3000);
+        }
+    }
+
+    // Expose for inline onclick
+    window.__vc = text => {
+        setTx(`<i class="fas fa-user text-muted"></i>&nbsp;"${text}"`);
+        runCommand(text);
+    };
+
+    // ── Text input ──────────────────────────────────────────────────
+    const handleSend = () => {
+        const t = textInput.value.trim();
+        if (!t) return;
+        textInput.value = '';
+        window.__vc(t);
+    };
+    sendBtn.addEventListener('click', handleSend);
+    textInput.addEventListener('keypress', e => { if (e.key === 'Enter') handleSend(); });
+
+    // ── Command chips ───────────────────────────────────────────────
+    // Use event delegation — single listener, no memory leaks
+    document.querySelector('.chips-grid').addEventListener('click', e => {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        window.__vc(chip.dataset.cmd);
+    });
+
+    // ── History ─────────────────────────────────────────────────────
+    async function loadHistory() {
+        const tbody = $('history-tbody');
+        if (!tbody) return;
+        try {
+            const res = await Api.get('/voice/history?limit=100');
+            if (res.ok && res.data?.success) {
+                allHistory = res.data.data || [];
+                applyFilter();
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load history.</td></tr>';
+            }
+        } catch {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Network error.</td></tr>';
+        }
+    }
+
+    function applyFilter() {
+        const search = ($('history-search')?.value || '').toLowerCase();
+        const type   = $('history-type-filter')?.value || '';
+
+        filteredHistory = allHistory.filter(item => {
+            const matchSearch = !search
+                || item.voice_text?.toLowerCase().includes(search)
+                || item.parsed_category?.toLowerCase().includes(search);
+            const matchType = !type
+                || (type === 'Command' && !['Expense','Income'].includes(item.parsed_type))
+                || item.parsed_type === type;
+            return matchSearch && matchType;
+        });
+
+        histPage = 0;
+        renderHistoryPage();
+        const hc = $('history-count');
+        if (hc) hc.textContent = `${filteredHistory.length} result${filteredHistory.length !== 1 ? 's' : ''}`;
+    }
+
+    function renderHistoryPage() {
+        const tbody = $('history-tbody');
+        if (!tbody) return;
+        const start   = histPage * PAGE_SIZE;
+        const pageItems = filteredHistory.slice(start, start + PAGE_SIZE);
+
+        if (!filteredHistory.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:2rem">No history entries found.</td></tr>';
+            renderPagination();
+            return;
+        }
+
+        tbody.innerHTML = pageItems.map(item => {
+            const isExp = item.parsed_type === 'Expense';
+            const isInc = item.parsed_type === 'Income';
+            const badgeCls = isExp ? 'badge-danger' : isInc ? 'badge-success' : 'badge-info';
+            const label    = item.parsed_type || 'Query';
+            return `<tr>
+                <td style="font-size:.78rem;white-space:nowrap">${new Date(item.created_at).toLocaleString('en-IN')}</td>
+                <td style="font-weight:600;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                    title="${item.voice_text}">"${item.voice_text}"</td>
+                <td><span class="badge ${badgeCls}">${label}</span></td>
+                <td>${item.parsed_category || '—'}</td>
+                <td>${item.parsed_amount > 0 ? fmt(item.parsed_amount) : '—'}</td>
+                <td>
+                    <button class="btn btn-icon btn-secondary del-btn" style="color:#ef4444"
+                        data-id="${item.voice_id}" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+
+        // Single delegated delete listener
+        tbody.querySelectorAll('.del-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Delete this entry?')) return;
+                try {
+                    const res = await Api.delete(`/voice/history/${btn.dataset.id}`);
+                    if (res.data?.success) { showAlert('Deleted.'); loadHistory(); }
+                    else showAlert('Delete failed.', true);
+                } catch { showAlert('Network error.', true); }
+            });
+        });
+
+        renderPagination();
+    }
+
+    function renderPagination() {
+        const el   = $('history-pagination');
+        if (!el) return;
+        const total = Math.ceil(filteredHistory.length / PAGE_SIZE);
+        if (total <= 1) { el.innerHTML = ''; return; }
+
+        let html = '';
+        for (let i = 0; i < total; i++) {
+            html += `<button class="btn ${i === histPage ? 'btn-primary' : 'btn-secondary'}"
+                        style="padding:.3rem .7rem;font-size:.8rem;min-width:38px"
+                        onclick="window.__pg(${i})">${i + 1}</button>`;
+        }
+        el.innerHTML = html;
+    }
+
+    window.__pg = (page) => {
+        histPage = page;
+        renderHistoryPage();
+        $('history-tbody')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    // Search / filter listeners — use debounce
+    let searchDebounce;
+    $('history-search')?.addEventListener('input', () => {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(applyFilter, 280);
+    });
+    $('history-type-filter')?.addEventListener('change', applyFilter);
+    $('refresh-history-btn')?.addEventListener('click', loadHistory);
+
+    // ── Page unload cleanup — prevent memory leaks ───────────────────
+    window.addEventListener('beforeunload', () => {
+        teardown();
+        window.speechSynthesis?.cancel();
+    });
+
+    // ── Initial load ────────────────────────────────────────────────
+    loadHistory();
+    setStatePill('idle');
+
+})();
+</script>
+</body>
+</html>

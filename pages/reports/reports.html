@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics & Reports - AI Finance Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/pages/reports/reports.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="/pages/dashboard/dashboard.html" class="sidebar-logo">
+                    <i class="fas fa-brain"></i>
+                    <span>FinanceAI</span>
+                </a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Core</div>
+                <a href="/pages/dashboard/dashboard.html" class="nav-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/pages/income/income.html" class="nav-item">
+                    <i class="fas fa-arrow-trend-up"></i>
+                    <span>Income</span>
+                </a>
+                <a href="/pages/expenses/expenses.html" class="nav-item">
+                    <i class="fas fa-arrow-trend-down"></i>
+                    <span>Expenses</span>
+                </a>
+                <a href="/pages/budgets/budgets.html" class="nav-item">
+                    <i class="fas fa-wallet"></i>
+                    <span>Budgets</span>
+                </a>
+                <a href="/pages/categories/categories.html" class="nav-item">
+                    <i class="fas fa-tags"></i>
+                    <span>Categories</span>
+                </a>
+
+                <div class="nav-section-title">Intelligence & Tools</div>
+                <a href="/pages/reports/reports.html" class="nav-item active">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="/pages/ai-insights/ai-insights.html" class="nav-item">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <span>AI Insights</span>
+                </a>
+                <a href="/pages/receipts/receipts.html" class="nav-item">
+                    <i class="fas fa-receipt"></i>
+                    <span>Receipt OCR</span>
+                </a>
+                <a href="/pages/voice/voice.html" class="nav-item">
+                    <i class="fas fa-microphone"></i>
+                    <span>Voice Assistant</span>
+                </a>
+
+                <div class="nav-section-title">Account</div>
+                <a href="/pages/notifications/notifications.html" class="nav-item">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                    <span class="nav-badge" id="sidebar-notif-badge" style="display:none;">0</span>
+                </a>
+                <a href="/pages/settings/settings.html" class="nav-item">
+                    <i class="fas fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile-badge">
+                    <div class="user-avatar" id="sidebar-avatar">A</div>
+                    <div class="user-info">
+                        <div class="user-name" id="sidebar-user-name">User</div>
+                        <div class="user-role">Free Tier</div>
+                    </div>
+                    <a href="#" id="logout-btn" title="Logout" style="color: var(--text-muted);"><i class="fas fa-arrow-right-from-bracket"></i></a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-wrapper">
+            <!-- Header -->
+            <header class="top-header">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="mobile-nav-toggle" id="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+                    <div class="header-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search analytics in ₹...">
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <div class="export-dropdown-wrap">
+                        <button class="btn btn-secondary" id="export-menu-btn">
+                            <i class="fas fa-download"></i>
+                            <span>Export Report</span>
+                            <i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i>
+                        </button>
+                        <div class="export-dropdown" id="export-dropdown">
+                            <button class="export-opt" id="export-pdf-btn"><i class="fas fa-file-pdf text-danger"></i> PDF Summary Document</button>
+                            <button class="export-opt" id="export-csv-btn"><i class="fas fa-file-csv text-success"></i> CSV Transactions Data</button>
+                            <button class="export-opt" id="export-excel-btn"><i class="fas fa-file-excel text-success"></i> Excel (.xlsx / CSV) Sheet</button>
+                        </div>
+                    </div>
+                    <a href="/pages/notifications/notifications.html" class="header-btn" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge-dot" id="header-notif-dot" style="display:none;"></span>
+                    </a>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <!-- Page Title -->
+                <div class="page-header">
+                    <div class="page-title-group">
+                        <h1>Financial Analytics Center</h1>
+                        <p>Real-time cash flow breakdown, savings trajectory, category concentration in Indian Rupees (₹).</p>
+                    </div>
+                </div>
+
+                <!-- Alert banner -->
+                <div id="global-alert" class="alert hidden" style="margin-bottom: 1.5rem;"></div>
+
+                <!-- Advanced Date Filter Bar -->
+                <div class="filter-panel card card-glass mb-8">
+                    <div class="filter-presets">
+                        <button class="preset-pill active" data-preset="thisMonth">This Month</button>
+                        <button class="preset-pill" data-preset="lastMonth">Last Month</button>
+                        <button class="preset-pill" data-preset="last7days">Last 7 Days</button>
+                        <button class="preset-pill" data-preset="last30days">Last 30 Days</button>
+                        <button class="preset-pill" data-preset="last3months">Last 3 Months</button>
+                        <button class="preset-pill" data-preset="last6months">Last 6 Months</button>
+                        <button class="preset-pill" data-preset="thisYear">This Year</button>
+                        <button class="preset-pill" data-preset="today">Today</button>
+                        <button class="preset-pill" data-preset="yesterday">Yesterday</button>
+                        <button class="preset-pill" data-preset="custom">Custom Range</button>
+                    </div>
+
+                    <div class="custom-date-row" id="custom-date-row" style="display: none;">
+                        <div class="date-input-group">
+                            <label><i class="fas fa-calendar"></i> From</label>
+                            <input type="date" id="start-date" class="form-control">
+                        </div>
+                        <div class="date-input-group">
+                            <label><i class="fas fa-calendar"></i> To</label>
+                            <input type="date" id="end-date" class="form-control">
+                        </div>
+                        <button class="btn btn-primary" id="apply-custom-btn" style="align-self: flex-end;">Apply Filter</button>
+                    </div>
+                </div>
+
+                <!-- 7 Modern KPI Summary Cards -->
+                <div class="kpi-grid">
+                    <!-- 1. Total Income -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Total Income</span>
+                            <div class="kpi-icon-wrap" style="color: var(--success); background: var(--success-bg);"><i class="fas fa-wallet"></i></div>
+                        </div>
+                        <div class="kpi-value text-success" id="rep-total-income">₹0.00</div>
+                        <div class="kpi-footer">
+                            <span class="trend-badge positive"><i class="fas fa-arrow-up"></i> Inflow</span>
+                            <span id="rep-income-sub">In selected timeframe</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Total Expense -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Total Expense</span>
+                            <div class="kpi-icon-wrap" style="color: var(--danger); background: var(--danger-bg);"><i class="fas fa-credit-card"></i></div>
+                        </div>
+                        <div class="kpi-value text-danger" id="rep-total-expense">₹0.00</div>
+                        <div class="kpi-footer">
+                            <span class="trend-badge negative"><i class="fas fa-arrow-down"></i> Outflow</span>
+                            <span id="rep-expense-sub">In selected timeframe</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Net Savings -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Net Savings</span>
+                            <div class="kpi-icon-wrap" style="color: var(--primary); background: var(--primary-glow);"><i class="fas fa-piggy-bank"></i></div>
+                        </div>
+                        <div class="kpi-value" id="rep-net-savings">₹0.00</div>
+                        <div class="kpi-footer">
+                            <span class="trend-badge neutral" id="rep-savings-status">Net Flow</span>
+                            <span>Income minus Expense</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Savings Rate -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Savings Rate</span>
+                            <div class="kpi-icon-wrap" style="color: var(--secondary); background: var(--secondary-glow);"><i class="fas fa-percent"></i></div>
+                        </div>
+                        <div class="kpi-value" id="rep-savings-rate">0.0%</div>
+                        <div class="kpi-footer">
+                            <div class="progress-bar-wrap" style="flex: 1; height: 6px; background: var(--bg-surface-elevated); border-radius: 3px; overflow: hidden;">
+                                <div id="savings-rate-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--secondary), var(--success)); transition: width 0.5s;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Budget Utilization -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Budget Utilization</span>
+                            <div class="kpi-icon-wrap" style="color: var(--warning); background: var(--warning-bg);"><i class="fas fa-bullseye"></i></div>
+                        </div>
+                        <div class="kpi-value" id="rep-budget-util">0%</div>
+                        <div class="kpi-footer">
+                            <span id="rep-budget-limit-label">Limit: ₹0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- 6. Top Expense Category -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Top Expense Cat.</span>
+                            <div class="kpi-icon-wrap" style="color: var(--purple); background: var(--purple-bg);"><i class="fas fa-fire"></i></div>
+                        </div>
+                        <div class="kpi-value" style="font-size: 1.35rem;" id="rep-top-expense-cat">None</div>
+                        <div class="kpi-footer">
+                            <span id="rep-top-expense-val" style="color: var(--danger); font-weight: 600;">₹0.00 (0%)</span>
+                        </div>
+                    </div>
+
+                    <!-- 7. Top Income Source -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Top Income Source</span>
+                            <div class="kpi-icon-wrap" style="color: var(--success); background: var(--success-bg);"><i class="fas fa-building-columns"></i></div>
+                        </div>
+                        <div class="kpi-value" style="font-size: 1.35rem;" id="rep-top-income-src">None</div>
+                        <div class="kpi-footer">
+                            <span id="rep-top-income-val" style="color: var(--success); font-weight: 600;">₹0.00 (0%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6 Interactive Visual Charts Grid -->
+                <div class="charts-grid">
+                    <!-- Chart 1: Cash Flow & Trends (Line) -->
+                    <div class="card chart-card full-width-chart">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-chart-area"></i>
+                                <span>12-Month Income vs Expense Cash Flow (₹)</span>
+                            </div>
+                            <span class="badge badge-primary">Monthly Trend</span>
+                        </div>
+                        <div class="chart-container" style="height: 320px;">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: Net Savings Progression (Bar) -->
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-chart-simple"></i>
+                                <span>Monthly Savings Progression (₹)</span>
+                            </div>
+                            <span class="badge badge-success">Growth</span>
+                        </div>
+                        <div class="chart-container" style="height: 280px;">
+                            <canvas id="savingsBarChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 3: Budget Utilization Rate -->
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-gauge-high"></i>
+                                <span>Budget vs Actual Spend (₹)</span>
+                            </div>
+                            <span class="badge badge-warning">Discipline</span>
+                        </div>
+                        <div class="chart-container" style="height: 280px;">
+                            <canvas id="budgetDoughnutChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 4: Expense Categories Breakdown (Doughnut) -->
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-chart-pie"></i>
+                                <span>Expense Category Breakdown (₹)</span>
+                            </div>
+                            <span class="badge badge-danger">Outflow</span>
+                        </div>
+                        <div class="chart-container" style="height: 280px;">
+                            <canvas id="expensePieChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 5: Income Source Breakdown (Pie) -->
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-circle-notch"></i>
+                                <span>Income Sources Distribution (₹)</span>
+                            </div>
+                            <span class="badge badge-success">Inflow</span>
+                        </div>
+                        <div class="chart-container" style="height: 280px;">
+                            <canvas id="incomePieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/auth.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/pages/reports/reports.js"></script>
+</body>
+</html>
