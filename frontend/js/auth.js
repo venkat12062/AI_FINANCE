@@ -1,13 +1,64 @@
 /**
  * Frontend Authentication Utilities
+ * Centralizes session management, user retrieval, and page protection.
  */
 
 const Auth = {
     /**
-     * Checks if a user is currently logged in (has token).
+     * Checks if a user is currently logged in (has valid token).
      */
     isLoggedIn: () => {
-        return !!localStorage.getItem('authToken');
+        return !!(localStorage.getItem('token') || localStorage.getItem('authToken'));
+    },
+
+    /**
+     * Checks if a token is present in localStorage
+     */
+    isTokenPresent: () => {
+        return Auth.isLoggedIn();
+    },
+
+    /**
+     * Returns the stored auth token
+     */
+    getToken: () => {
+        return localStorage.getItem('token') || localStorage.getItem('authToken') || '';
+    },
+
+    /**
+     * Returns the parsed user object from localStorage
+     * Supports both 'user' and 'currentUser' keys for complete compatibility.
+     */
+    getUser: () => {
+        try {
+            const raw = localStorage.getItem('user') || localStorage.getItem('currentUser');
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            console.error('Error parsing user from localStorage:', e);
+            return null;
+        }
+    },
+
+    /**
+     * Alias for getUser() to ensure backward compatibility across all modules
+     */
+    getCurrentUser: () => {
+        return Auth.getUser();
+    },
+
+    /**
+     * Sets user session data in localStorage
+     */
+    setSession: (token, user) => {
+        if (token) {
+            localStorage.setItem('token', token);
+            localStorage.setItem('authToken', token);
+        }
+        if (user) {
+            const str = typeof user === 'string' ? user : JSON.stringify(user);
+            localStorage.setItem('user', str);
+            localStorage.setItem('currentUser', str);
+        }
     },
 
     /**
@@ -15,34 +66,8 @@ const Auth = {
      */
     checkSessionAndRedirect: () => {
         if (Auth.isLoggedIn()) {
-            // Dashboard page does not exist yet per module specs, but we redirect as requested.
-            window.location.href = '../dashboard/dashboard.html';
+            window.location.href = '/pages/dashboard/dashboard.html';
         }
-    },
-
-    /**
-     * Logs the user out by clearing session data and redirecting.
-     */
-    logout: () => {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-        
-        // Redirect to login page
-        window.location.href = '/frontend/pages/login/login.html';
-    },
-
-    /**
-     * Returns the stored auth token
-     */
-    getToken: () => {
-        return localStorage.getItem('authToken');
-    },
-
-    /**
-     * Checks if a token is present in localStorage
-     */
-    isTokenPresent: () => {
-        return !!localStorage.getItem('authToken');
     },
 
     /**
@@ -50,16 +75,22 @@ const Auth = {
      * If missing, redirects to login page.
      */
     protectPage: () => {
-        if (!Auth.isTokenPresent()) {
-            window.location.href = '/frontend/pages/login/login.html';
+        if (!Auth.isLoggedIn()) {
+            window.location.href = '/pages/login/login.html';
         }
     },
 
     /**
-     * Returns the parsed user object from localStorage
+     * Logs the user out by clearing session data and redirecting.
      */
-    getCurrentUser: () => {
-        const user = localStorage.getItem('user');
-        return user ? JSON.parse(user) : null;
+    logout: () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('currentUser');
+        localStorage.clear();
+        
+        // Redirect to login page
+        window.location.href = '/pages/login/login.html';
     }
 };

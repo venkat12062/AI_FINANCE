@@ -80,8 +80,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Store token and user in localStorage
                 if (data.data && data.data.token) {
-                    localStorage.setItem('authToken', data.data.token);
-                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    if (typeof Auth !== 'undefined' && Auth.setSession) {
+                        Auth.setSession(data.data.token, data.data.user);
+                    } else {
+                        localStorage.setItem('token', data.data.token);
+                        localStorage.setItem('authToken', data.data.token);
+                        localStorage.setItem('user', JSON.stringify(data.data.user));
+                        localStorage.setItem('currentUser', JSON.stringify(data.data.user));
+                    }
                     
                     // Redirect to dashboard
                     setTimeout(() => {

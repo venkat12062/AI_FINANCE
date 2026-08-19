@@ -50,8 +50,8 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://fonts.gstatic.com", "data:"],
             imgSrc: ["'self'", "data:", "blob:"],
-            connectSrc: ["'self'"],
-            workerSrc: ["'self'"],
+            connectSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+            workerSrc: ["'self'", "blob:", "https://cdn.jsdelivr.net"],
             manifestSrc: ["'self'"],
         }
     },
