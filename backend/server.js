@@ -34,6 +34,10 @@ const healthRoutes = require('./routes/healthRoutes');
 const path = require('path');
 
 const app = express();
+
+// Trust reverse proxy for Railway / Cloud deployment
+app.set('trust proxy', 1);
+
 const PORT = env.PORT || 5000;
 
 // Security and utility middlewares

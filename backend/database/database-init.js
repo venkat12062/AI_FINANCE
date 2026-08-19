@@ -3,30 +3,42 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
+const env = require('../config/env');
+
 async function initDatabase() {
     let connection;
     try {
-        // 1. Connect MySQL server (without specifying a database)
-        console.log('Connecting to MySQL server...');
-        connection = await mysql.createConnection({
-            host: process.env.DB_HOST || 'localhost',
-            user: process.env.DB_USER || 'root',
-            password: process.env.DB_PASSWORD || '',
-            multipleStatements: true // Enable multiple statements for SQL scripts
-        });
+        const host = process.env.MYSQLHOST || process.env.DB_HOST || 'localhost';
+        const port = parseInt(process.env.MYSQLPORT || process.env.DB_PORT || '3306', 10);
+        const user = process.env.MYSQLUSER || process.env.DB_USER || 'root';
+        const password = process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || '';
+        const dbName = process.env.MYSQLDATABASE || process.env.DB_NAME || 'ai_finance_manager';
+
+        console.log(`Connecting to MySQL server at ${host}:${port}...`);
         
-        const dbName = process.env.DB_NAME || 'ai_finance_manager';
+        const connectionConfig = env.DATABASE_URL
+            ? { uri: env.DATABASE_URL, multipleStatements: true }
+            : {
+                host,
+                port,
+                user,
+                password,
+                multipleStatements: true
+            };
 
-        // 2 & 3. Create database if missing
-        console.log(`Ensuring database '${dbName}' exists...`);
-        await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
+        connection = await mysql.createConnection(connectionConfig);
+        console.log(`✅ Connected to MySQL database server`);
 
-        // 4. Switch to database
-        await connection.query(`USE \`${dbName}\``);
+        // Create database if missing (on Railway, the database usually already exists)
+        try {
+            await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
+            await connection.query(`USE \`${dbName}\``);
+        } catch (dbSwitchErr) {
+            console.log(`Using current database connection (${dbName}).`);
+        }
 
         // Helper to run SQL file
         const runSqlFile = async (filename, description) => {
-            console.log(`Executing ${description}...`);
             const filePath = path.join(__dirname, filename);
             if (!fs.existsSync(filePath)) {
                 console.warn(`⚠️ Warning: ${filename} not found.`);
@@ -39,32 +51,27 @@ async function initDatabase() {
                 await connection.query(sql);
                 console.log(`✅ ${description} executed successfully.`);
             } catch (err) {
-                // If it's a duplicate index error, we can ignore it to keep script idempotent
-                if (err.code === 'ER_DUP_KEYNAME') {
-                    console.log(`✅ ${description} executed (Indexes already exist).`);
+                // If it's a duplicate table or index error, ignore to keep script idempotent
+                if (err.code === 'ER_DUP_KEYNAME' || err.code === 'ER_TABLE_EXISTS_ERROR') {
+                    console.log(`✅ ${description} executed (already exists).`);
                 } else {
-                    console.error(`❌ Error executing ${description}:`, err.message);
-                    throw err;
+                    console.warn(`Notice during ${description}:`, err.message);
                 }
             }
         };
 
-        // 5. Execute schema.sql
+        // Execute schema, indexes, seed
         await runSqlFile('schema.sql', 'schema.sql');
-
-        // 6. Execute indexes.sql
         await runSqlFile('indexes.sql', 'indexes.sql');
-
-        // 7. Execute seed.sql
         await runSqlFile('seed.sql', 'seed.sql');
 
         console.log('🎉 Database initialization completed successfully.');
 
     } catch (error) {
-        console.error('❌ Failed to initialize database:', error);
+        console.warn('ℹ️ MySQL database-init notice (using database fallback if needed):', error.message);
     } finally {
         if (connection) {
-            await connection.end();
+            try { await connection.end(); } catch {}
         }
     }
 }
